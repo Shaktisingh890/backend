@@ -3,7 +3,7 @@ import { ApiError } from "../utils/apiError.js"
 import { ApiResponse } from "../utils/apiResponse.js";
 import cloudinary from "../config/cloudinary.js"
 
-const addCar = async function (req, res, next) {
+export const addCar = async function (req, res, next) {
     try {
         // Destructure data from the request body
         const {
@@ -83,12 +83,19 @@ const addCar = async function (req, res, next) {
 };
 
 
+export const getAllCars = async( req, res) => {
+    try {
+        const cars = await Car.find()
+        console.log("All Cars",cars)
+        return res.status(200).json({
+            message: "All Cars Successfully fetched",
+            data : cars
+        })
+    } catch (error) {
+        console.log("Error to fetch cars : ",error)
+        return res.status(404).json({
+            message:"Data not found"
+        })
+    }
+}
 
-
-
-
-
-
-
-
-export {addCar}
