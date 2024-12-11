@@ -2,6 +2,7 @@ import {Car} from "../models/car.js"
 import { ApiError } from "../utils/apiError.js"
 import { ApiResponse } from "../utils/apiResponse.js";
 import cloudinary from "../config/cloudinary.js"
+import { ObjectId } from "mongodb";
 
 export const addCar = async function (req, res, next) {
     try {
@@ -99,3 +100,46 @@ export const getAllCars = async( req, res) => {
     }
 }
 
+export const updateCarDetails = async (req,res) => {
+    const carId = req.params.carId;
+    const updateDetails = req.body;
+
+    console.log("Car id for Update : ",carId)
+    console.log("Car Details for Update : ",updateDetails)
+
+    try {
+        console.log("Update car Function run........")
+        const result = await Car.updateOne({ _id: new ObjectId(carId)},{$set: updateDetails})
+        if(result.matchedCount > 0){
+            console.log(`Car with id : ${carId} updated Successfully`)
+            res.status(200).json({message : `Car with id : ${carId} updated Successfully`})
+        }else{
+            console.log(`Car with Id ${carId} not found !`)
+            res.status(404).json({message : `Car with Id ${carId} not found !`})
+        }
+    } catch (error) {
+        console.log("Error in update car function. invalid id")
+        res.status(500).json({ error: "Failed to update car." });
+
+    }
+}
+
+export const deleteCar = async(req,res) => {
+    const carId = req.params.carId;
+    console.log("Car id for Delete : ",carId)
+
+    try {
+        const result = await Car.deleteOne({ _id: new ObjectId(carId)});
+        console.log("Result : ",result)
+        if(result.deletedCount > 0){
+            console.log("Car deleted SuccessFully")
+            res.status(200).json({message : `Car with id : ${carId} deleted SuccessFully`})
+        }else{
+            console.log("Car not found or not deleted")
+            res.status(404).json({message : `Car with id : ${carId} not Found`})
+        }
+    } catch (error) {
+        console.error("this error : ",error);
+        res.status(500).json({ error: "Failed to delete car." });
+    }
+}

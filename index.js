@@ -9,6 +9,7 @@ import customerRouter from './routes/customer.routes.js';
 import driverRouter from './routes/driver.routes.js';
 import partnerRouter from './routes/partner.routes.js';
 import carRouter from './routes/car.routes.js';
+import bookingRouter from './routes/booking.routes.js'
 
 // Initialize dotenv
 dotenv.config({
@@ -52,6 +53,8 @@ app.use("/api/v1/customers", customerRouter);
 app.use("/api/v1/drivers", driverRouter);
 app.use("/api/v1/partners", partnerRouter);
 app.use("/api/v1/cars", carRouter);
+app.use("/api/v1/booking", bookingRouter);
+
 
 // Connect to the database
 connectDB();
