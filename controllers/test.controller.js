@@ -1,6 +1,5 @@
 import User from "../models/user.js";
 
-
 const mytest = async (req, res, next) => {
     try {
       const newAdmins = await User.create(
@@ -33,28 +32,6 @@ const mytest = async (req, res, next) => {
               "lastLogin": "2024-11-07"
             }
           ]
-          
-          
-          
-
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-          
-      
       );
   
       console.log("Success");

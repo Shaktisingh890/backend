@@ -19,9 +19,9 @@ export const createBooking = async (req, res) => {
         const existingBooking = await Booking.findOne({
             carId: carId,
             $or: [
-                { startDate: { $lt: endDate }, endDate: { $gt: startDate } }, // Overlap condition
-                { startDate: { $gte: startDate, $lte: endDate } }, // Booking starts during requested period
-                { endDate: { $gte: startDate, $lte: endDate } }, // Booking ends during requested period
+                { startDate: { $lt: endDate }, endDate: { $gt: startDate } },
+                { startDate: { $gte: startDate, $lte: endDate } },
+                { endDate: { $gte: startDate, $lte: endDate } },
             ],
         });
 
@@ -54,39 +54,36 @@ export const createBooking = async (req, res) => {
     }
 }
 
-export const getAllBooking = async(req,res) => {
+export const getAllBooking = async (req, res) => {
     try {
         const bookings = await Booking.find()
-        console.log("Data : ",bookings)
+        console.log("Data : ", bookings)
         return res.status(200).json({
             message: "Booking fetchewd",
-            data : bookings
+            data: bookings
         })
     } catch (error) {
-        return res.status(404).json({message: " data not found"})
+        return res.status(404).json({ message: " data not found" })
     }
 }
 
 export const updateBookingPaymentStatus = async (req, res) => {
-
     const { bookingId, paymentStatus } = req.body;
-    console.log("request : ",req.body)
+    console.log("request : ", req.body)
 
     try {
         const booking = await Booking.findById(bookingId);
-        console.log("Booking : ",booking)
+        console.log("Booking : ", booking)
         if (!booking) {
             throw new Error('Booking not found');
         }
-
         booking.paymentStatus = paymentStatus;
 
         if (paymentStatus === 'completed') {
             booking.status = 'booked'; // Optionally, update booking status based on payment
-        }else{
+        } else {
             console.log("Not Matched")
         }
-
         await booking.save();
         return booking;
     } catch (error) {
