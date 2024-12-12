@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js"
 import { ApiResponse } from "../utils/apiResponse.js";
 import cloudinary from "../config/cloudinary.js"
 import { ObjectId } from "mongodb";
+import { Booking } from "../models/booking.js";
 
 export const addCar = async function (req, res, next) {
     try {
@@ -97,6 +98,28 @@ export const getAllCars = async( req, res) => {
         return res.status(404).json({
             message:"Data not found"
         })
+    }
+}
+
+export const getCarById = async(req, res) => {
+    const carId = req.params.carId;
+    console.log("Car Id : ",carId)
+    try {
+        const cardetails = await Car.findById({ _id: new ObjectId(carId)}).populate('partnerId')
+        const bookings = await Booking.findById(carId)
+        console.log("Car Details : ",cardetails)
+        if(cardetails){
+            res.status(200).json({
+                message: " car Details Successfully fetched",
+                data: { cardetails,bookings,}
+            })
+        }else{
+            res.status(404).json({
+                message: "Car not exist"
+            })
+        }
+    } catch (error) {
+        console.log("internal server error")
     }
 }
 
