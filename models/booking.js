@@ -15,6 +15,19 @@ const bookingSchema = new mongoose.Schema({
   penalties: { type: Number, default: 0 }, // Penalties for cancellations or amendments
 }, { timestamps: true });
 
+// Automatically calculate durationInDays before saving the document
+bookingSchema.pre('save', function (next) {
+  if (this.startDate && this.endDate) {
+    this.durationInDays = Math.ceil((this.endDate - this.startDate) / (1000 * 60 * 60 * 24));
+  }
+  next();
+});
+
+// Indexes to optimize queries
+bookingSchema.index({ customerId: 1 });
+bookingSchema.index({ carId: 1 });
+bookingSchema.index({ startDate: 1 });
+
 export const Booking = mongoose.model('Booking', bookingSchema);
 
   
