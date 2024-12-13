@@ -3,7 +3,7 @@ import Router from "express";
 const router = Router();
 
 import { multerUpload } from "../middlewares/multerService.js";
-import { registerDriver, loginDriver } from "../controllers/driver.controller.js";
+import { registerDriver, loginDriver, getAllDrivers } from "../controllers/driver.controller.js";
 
 router.post(
   "/registerDriver",
@@ -40,5 +40,6 @@ router.post(
   registerDriver
 );
 
+router.get('/getAllDriver',getAllDrivers)
 
 export default router;
