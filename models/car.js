@@ -18,10 +18,10 @@ const carSchema = new mongoose.Schema({
     default: "available" 
   },
   location: {
-    type: { type: String, enum: ["Point"], required: true }, // GeoJSON format
+    type: { type: String, enum: ["Point"] }, // GeoJSON format      required: true
     coordinates: {
-      type: [Number], // [longitude, latitude]
-      required: true,
+      type: [Number]// [longitude, latitude]
+     
     },
   },
   features: [String], // e.g., ['GPS', 'Bluetooth', 'Air Conditioning']
