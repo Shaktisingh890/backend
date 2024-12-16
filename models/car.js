@@ -18,10 +18,10 @@ const carSchema = new mongoose.Schema({
     default: "available" 
   },
   location: {
-    type: { type: String, enum: ["Point"], required: true }, // GeoJSON format
+    type: { type: String, enum: ["Point"] }, // GeoJSON format      required: true
     coordinates: {
-      type: [Number], // [longitude, latitude]
-      required: true,
+      type: [Number]// [longitude, latitude]
+     
     },
   },
   features: [String], // e.g., ['GPS', 'Bluetooth', 'Air Conditioning']
@@ -45,7 +45,12 @@ const carSchema = new mongoose.Schema({
         default: "pending",
       },
     },
+
+  
+
   ],
+  category: { type: String, required: true }, // New category field
+  subCategory: { type: String, required: true }, // New subCategory field
 }, { timestamps: true });
 
 // Create a geospatial index for the location field

@@ -31,6 +31,7 @@ export const authMiddleware = async (req, res, next) => {
     
     const user = await User.findById(userId).select("-password -refreshToken");
     
+    console.log("user  :",user)
     // Check if the user exists
     if (!user) {
       throw new ApiError(401, "Invalid Access Token");
