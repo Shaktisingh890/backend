@@ -82,6 +82,38 @@ export const getBookingByCarId = async (req, res) => {
      }
 }
 
+export const getBookingByUserId = async (req, res) => {
+    const userId = req.user;
+    try {
+        if(!userId || !ObjectId.isValid(userId)){
+            return res.status(400).json({
+                success : false,
+                message: "Invalid or missing UserId"
+            })
+        }
+        const bookings = await Booking.find({ customerId : new ObjectId(userId)}).populate('carId')
+        if(bookings.length === 0){
+            return res.status(404).json({
+                success : false,
+                message: " No Booking found! " 
+            })
+        }
+
+        console.log("Bookings : ",bookings)
+        res.status(200).json({
+            success : true,
+            message : "Bookings SucccessFully Fetched ",
+            data : bookings
+        })
+    } catch (error) {
+        console.error("Error fetching Bookings : ",error)
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });  
+    }
+}
+
 export const getAllBooking = async (req, res) => {
     try {
         const bookings = await Booking.find()
