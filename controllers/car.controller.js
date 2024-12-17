@@ -132,6 +132,37 @@ export const getCarById = async (req, res) => {
     }
 }
 
+export const getCarByUserId = async (req, res) => {
+    const userId = req.user;
+
+    try {
+        // Validate userId
+        if (!userId || !ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: "Invalid or missing User ID" });
+        }
+
+        // Fetch car details
+        const carDetails = await Car.find({ partnerId: new ObjectId(userId) });
+
+        if (carDetails.length === 0) {
+            return res.status(404).json({ success: false, message: "No car details found!" });
+        }
+
+        console.log("Car details:", carDetails);
+        res.status(200).json({
+            success: true,
+            message: "Car details fetched successfully",
+            data: carDetails,
+        });
+    } catch (error) {
+        console.error("Error fetching car details:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
+};
+
 export const updateCarDetails = async (req, res) => {
     const carId = req.params.carId;
     const updateDetails = req.body;
