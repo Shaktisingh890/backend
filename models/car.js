@@ -31,24 +31,21 @@ const carSchema = new mongoose.Schema({
     ref: "Partner", // Link to the partner managing the car
     required: true,
   },
-  bookings: [
-    {
-      startDate: { type: Date, required: true },
-      endDate: { type: Date, required: true },
-      customerId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Customer", // Link to the customer who booked
-      },
-      status: {
-        type: String,
-        enum: ["pending", "confirmed", "completed", "canceled"],
-        default: "pending",
-      },
-    },
-
-  
-
-  ],
+  // bookings: [
+  //   {
+  //     startDate: { type: Date, required: true },
+  //     endDate: { type: Date, required: true },
+  //     customerId: {
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       ref: "Customer", // Link to the customer who booked
+  //     },
+  //     status: {
+  //       type: String,
+  //       enum: ["pending", "confirmed", "completed", "canceled"],
+  //       default: "pending",
+  //     },
+  //   },
+  // ],
   category: { type: String, required: true }, // New category field
   subCategory: { type: String, required: true }, // New subCategory field
 }, { timestamps: true });
