@@ -84,6 +84,7 @@ export const getBookingByCarId = async (req, res) => {
 
 export const getBookingByUserId = async (req, res) => {
     const userId = req.user;
+    
     try {
         if(!userId || !ObjectId.isValid(userId)){
             return res.status(400).json({
@@ -103,6 +104,40 @@ export const getBookingByUserId = async (req, res) => {
         res.status(200).json({
             success : true,
             message : "Bookings SucccessFully Fetched ",
+            data : bookings
+        })
+    } catch (error) {
+        console.error("Error fetching Bookings : ",error)
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });  
+    }
+}
+
+export const getBookingByDriverId = async( req, res) => {
+    const driverId = req.user;
+    try {
+        if(!driverId || !ObjectId.isValid(driverId)){
+            return res.status(400).json({
+                success : false,
+                message: "Invalid or missing Driver Id"
+            })
+        }
+
+        const bookings = await Booking.find({ driverId : new ObjectId(driverId)}).populate('customerId')
+        if(bookings.length === 0){
+            return res.status(404).json({
+                success : false,
+                message : "Bookings Not found!"
+            })
+        }
+
+        console.log("bookings : ",bookings)
+
+        res.status(200).json({
+            success : true,
+            message : "bookings SuccessFully fetched!",
             data : bookings
         })
     } catch (error) {
@@ -148,6 +183,50 @@ export const updateBookingPaymentStatus = async (req, res) => {
         return booking;
     } catch (error) {
         throw new Error('Failed to update payment status');
+    }
+};
+
+export const deleteBookingById = async (req, res) => {
+    const driverId = req.params.driverId;
+
+    console.log("Booking ID:", driverId);
+
+    try {
+        // Convert bookingId to ObjectId
+        if (!ObjectId.isValid(driverId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Booking ID format",
+            });
+        }
+
+        const driver = new ObjectId(driverId);
+        console.log("objectId Booking:", driver);
+
+
+        // Find and delete the booking
+        const deletedBooking = await Booking.findOneAndDelete({driverId : driver});
+
+        console.log("Deleted Booking:", deletedBooking);
+
+        if (!deletedBooking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found with the provided ID",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Booking deleted successfully",
+            data: deletedBooking,
+        });
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
 };
 
