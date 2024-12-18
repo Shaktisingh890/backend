@@ -26,6 +26,16 @@ router.get('/getCarByUserId',authMiddleware, getCarByUserId)
 
 router.put('/updateCar/:carId',authMiddleware, updateCarDetails)
 router.delete('/deletaCar/:carId', deleteCar)
+// router.delete('/deleteAll', async (req, res) => {
+//     try {
+//       await Car.deleteMany({}); // Delete all data from the Car collection
+//       console.log("All Cars Delete Successfully")
+//       res.status(200).json({ message: 'All cars deleted successfully' });
+//     } catch (err) {
+//       console.error('Error deleting cars:', err);
+//       res.status(500).json({ message: 'Error deleting cars' });
+//     }
+//   });
 
 
 export default router;
