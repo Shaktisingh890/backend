@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Car } from "../models/car.js"
 import { ApiError } from "../utils/apiError.js"
 import { ApiResponse } from "../utils/apiResponse.js";
@@ -10,7 +11,7 @@ export const addCar = async function (req, res, next) {
       const carDetails = req.body.carDetails ? JSON.parse(req.body.carDetails) : req.body.carDetails;
   
       // Debug: Log the carDetails to see its contents
-    //    console.log( carDetails);
+       console.log( carDetails);
   
       // Ensure the carDetails object is not empty or undefined
       if (!carDetails) {
@@ -38,14 +39,31 @@ export const addCar = async function (req, res, next) {
   
       // Debugging: Check if carName is properly destructured
     
-    
-      if (!carName || !carModel || !carYear ) {
-        throw new ApiError(400, "Missing required fields in car details.");
-      }
-
+      const imageUrls = [];
      
-
+    if (req.files) {
+        for (const key in req.files) {
+          if (req.files[key]) {
+            // Assuming file names are 'image0', 'image1', etc.
+            const localPath = req.files[key][0].path;  // Path to the uploaded file
+            console.log(`Uploading ${key}: ${localPath}`);
+            
+            // Upload image to Cloudinary
+            const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
+              folder: 'partner_photos',  // Optional: specify a folder in Cloudinary
+              public_id: `${req.user.email}_${key}`,  // Optionally specify a public ID (e.g., email or a unique identifier)
+            });
   
+            // Push Cloudinary URL into imageUrls array
+            imageUrls.push(cloudinaryResponse.secure_url);
+  
+            // Delete the local file after upload
+            fs.unlinkSync(localPath);
+          }
+        }
+      }
+  
+
       // Rest of the logic...
       const carData = {};
   
@@ -75,11 +93,17 @@ export const addCar = async function (req, res, next) {
       if (dropoffLocation) carData.dropoffLocation = dropoffLocation;
       if (registrationNumber) carData.registrationNumber = registrationNumber;
       if (transmissionType) carData.transmissionType = transmissionType;
+      if (imageUrls.length > 0) {
+        carData.images = imageUrls;  // Store the Cloudinary image URLs in the 'images' array
+      }
   
-    //   console.log("ssss",carData);
+      console.log("Car Data : ",carData);
       // Save logic...
       const newCar = new Car(carData);
       const savedCar = await newCar.save();
+      console.log("Car Saved  : ",savedCar);
+
+
       res.status(201).json({
         success: true,
         message: "Car added successfully.",
@@ -145,6 +169,7 @@ export const getCarByUserId = async (req, res) => {
         const carDetails = await Car.find({ partnerId: new ObjectId(userId) });
 
         if (carDetails.length === 0) {
+            console.log("No car details found!")
             return res.status(404).json({ success: false, message: "No car details found!" });
         }
 
@@ -152,7 +177,7 @@ export const getCarByUserId = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Car details fetched successfully",
-            data: carDetails,
+            cars: carDetails,
         });
     } catch (error) {
         console.error("Error fetching car details:", error);
