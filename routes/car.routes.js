@@ -3,7 +3,7 @@ import {Car} from '../models/car.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js'; 
 import { multerUpload } from '../middlewares/multerService.js';
 
-import { addCar,deleteCar,getAllCars, getCarById,updateCarDetails, getCarByUserId } from '../controllers/car.controller.js';
+import { addCar,deleteCar,getAllCars, getCarById,updateCarDetails, getCarByCost, getCarByUserId } from '../controllers/car.controller.js';
 
 
 
@@ -21,7 +21,7 @@ router.post('/addCar',authMiddleware,multerUpload.fields(
 
 router.get('/getAllCars', getAllCars)
 router.get('/getCarByid/:carId', getCarById)
-
+router.get('/getCarByCost',authMiddleware, getCarByCost);
 router.get('/getCarByUserId',authMiddleware, getCarByUserId)
 
 router.put('/updateCar/:carId',authMiddleware, updateCarDetails)
