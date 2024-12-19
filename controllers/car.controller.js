@@ -64,6 +64,7 @@ export const addCar = async function (req, res, next) {
       }
     } else {
       console.log("No images uploaded");
+
     }
 
     // Populate the car data object dynamically
@@ -97,6 +98,7 @@ export const addCar = async function (req, res, next) {
     if (imageUrls.length > 0) {
       carData.images = imageUrls;  // Store the Cloudinary image URLs
     }
+
 
     // Save the car data to the database
     const newCar = new Car(carData);
