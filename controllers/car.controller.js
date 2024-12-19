@@ -64,6 +64,7 @@ export const addCar = async function (req, res, next) {
       }
     } else {
       console.log("No images uploaded");
+
     }
 
     // Populate the car data object dynamically
@@ -97,6 +98,7 @@ export const addCar = async function (req, res, next) {
     if (imageUrls.length > 0) {
       carData.images = imageUrls;  // Store the Cloudinary image URLs
     }
+
 
     // Save the car data to the database
     const newCar = new Car(carData);
@@ -199,10 +201,10 @@ export const updateCarDetails = async (req, res) => {
         const result = await Car.updateOne({ _id: new ObjectId(carId) }, { $set: updateDetails })
         if (result.matchedCount > 0) {
             console.log(`Car with id : ${carId} updated Successfully`)
-            res.status(200).json({ message: `Car with id : ${carId} updated Successfully` })
+            res.status(200).json({ message: `Car with id : ${carId} updated Successfully `})
         } else {
             console.log(`Car with Id ${carId} not found !`)
-            res.status(404).json({ message: `Car with Id ${carId} not found !` })
+            res.status(404).json({ message: `Car with Id ${carId} not found ! `})
         }
     } catch (error) {
         console.log("Error in update car function. invalid id")
@@ -231,3 +233,36 @@ export const deleteCar = async (req, res) => {
     }
 }
 
+export const getCarByCost = async (req, res) => {
+    try {
+      // Destructure the query parameters
+      console.log("User : : ", req.user);
+  
+      const { filter } = req.query;
+  
+      console.log("Filter : ", filter);
+      
+      // Set the price threshold for 'low_cost' and 'normal_cost'
+      const priceThreshold = 680;
+  
+      // Build the filter query object
+      let filterQuery = {};
+  
+      // Handle low cost or normal cost filters
+      if (filter === 'low_cost') {
+        filterQuery.pricePerDay = { $lte: priceThreshold }; // Cars with price <= 680
+      } else if (filter === 'normal_cost') {
+        filterQuery.pricePerDay = { $gt: priceThreshold }; // Cars with price > 680
+      }
+  
+      // Query the database with the filter query object
+      const cars = await Car.find(filterQuery);
+   console.log("Cars : ",cars)
+      // Return the filtered cars in the response
+      return res.status(200).json({ cars: cars });
+    } catch (error) {
+      console.error('Error fetching filtered cars:', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
+  
