@@ -3,7 +3,7 @@ import {Car} from '../models/car.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js'; 
 import { multerUpload } from '../middlewares/multerService.js';
 
-import { addCar,deleteCar,getAllCars, getCarById,updateCarDetails, getCarByCost, getCarByUserId } from '../controllers/car.controller.js';
+import { addCar,deleteCar,getAllCars, getCarById,updateCarDetails, getCarByCost, getCarByUserId, filterCarsByCategory , filterCarsBySubCategory } from '../controllers/car.controller.js';
 
 
 
@@ -26,6 +26,13 @@ router.get('/getCarByUserId',authMiddleware, getCarByUserId)
 
 router.put('/updateCar/:carId',authMiddleware, updateCarDetails)
 router.delete('/deletaCar/:carId', deleteCar)
+
+// Route for filtering cars by category
+router.get('/getCarByCategory',authMiddleware, filterCarsByCategory );
+
+// Route for filtering cars by subcategory
+router.get('/getCarBysubCategory',authMiddleware, filterCarsBySubCategory);
+
 // router.delete('/deleteAll', async (req, res) => {
 //     try {
 //       await Car.deleteMany({}); // Delete all data from the Car collection
