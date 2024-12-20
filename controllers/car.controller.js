@@ -64,7 +64,6 @@ export const addCar = async function (req, res, next) {
       }
     } else {
       console.log("No images uploaded");
-
     }
 
     // Populate the car data object dynamically
@@ -99,18 +98,18 @@ export const addCar = async function (req, res, next) {
       carData.images = imageUrls;  // Store the Cloudinary image URLs
     }
 
-
     // Save the car data to the database
     const newCar = new Car(carData);
     const savedCar = await newCar.save();
 
     
-
+    console.log("Car Added SuccessFully!")
     res.status(201).json(
         new ApiResponse (201,savedCar,"Car added successfully.")
     )
 
   } catch (error) {
+    console.log("Error : ", error)
     next(new ApiError(400, error.message || "Internal Server Error."));
   }
 };
@@ -235,34 +234,143 @@ export const deleteCar = async (req, res) => {
 
 export const getCarByCost = async (req, res) => {
     try {
-      // Destructure the query parameters
-      console.log("User : : ", req.user);
-  
-      const { filter } = req.query;
-  
-      console.log("Filter : ", filter);
-      
-      // Set the price threshold for 'low_cost' and 'normal_cost'
-      const priceThreshold = 680;
-  
-      // Build the filter query object
-      let filterQuery = {};
-  
-      // Handle low cost or normal cost filters
-      if (filter === 'low_cost') {
-        filterQuery.pricePerDay = { $lte: priceThreshold }; // Cars with price <= 680
-      } else if (filter === 'normal_cost') {
-        filterQuery.pricePerDay = { $gt: priceThreshold }; // Cars with price > 680
-      }
-  
-      // Query the database with the filter query object
-      const cars = await Car.find(filterQuery);
-   console.log("Cars : ",cars)
-      // Return the filtered cars in the response
-      return res.status(200).json({ cars: cars });
+        // Log the user and filter for debugging purposes
+        console.log("User:", req.user);
+        const { filter } = req.query;
+        console.log("Filter:", filter);
+
+        // Validate the filter query parameter
+        if (!filter) {
+            return res.status(400).json({ message: 'Filter parameter is required.' });
+        }
+
+        if (!['low_cost', 'normal_cost'].includes(filter)) {
+            return res.status(400).json({ message: 'Invalid filter value.' });
+        }
+
+        // Set the price threshold for 'low_cost' and 'normal_cost'
+        const priceThreshold = 50;
+
+        // Build the filter query object based on the filter
+        let filterQuery = {};
+
+        if (filter === 'low_cost') {
+            filterQuery.pricePerDay = { $lte: priceThreshold }; // Cars with price <= 680
+        } else if (filter === 'normal_cost') {
+            filterQuery.pricePerDay = { $gt: priceThreshold }; // Cars with price > 680
+        }
+
+        // Query the database with the filter query object
+        const cars = await Car.find(filterQuery).lean(); // Using .lean() for plain JavaScript objects
+        console.log("Cars:", cars);
+
+        // Return the array of cars directly in the response
+        return res.status(200).json(cars);
+
     } catch (error) {
-      console.error('Error fetching filtered cars:', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
+        console.error('Error fetching filtered cars:', error);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
-  };
+};
+
+// Fetch cars based on the selected category
+export const filterCarsByCategory = async (req, res) => {
+    try {
+        const { category, filter } = req.query; // Get category and cost filters from query params
+        console.log(req.query)
+        let filterQuery = { category };
+
+        if(!filter){
+            console.log("select costType First")
+            return res.status(404).json({
+                message : "Please select costType first!"
+            })
+        }  
+
+        if(!category){
+            console.log("select category First")
+            return res.status(404).json({
+                message : "Please select category first!"
+            })
+        }
+
+        // Apply cost filter if specified
+        if (filter === 'low_cost') {
+            filterQuery.pricePerDay = { $lte: 50 };
+        } else if (filter === 'normal_cost') {
+            filterQuery.pricePerDay = { $gt: 50 };
+        }
+
+        // Fetch the cars filtered by category
+        const cars = await Car.find(filterQuery);
+
+        console.log("Filtered Car : ",cars)
+
+        // Return the filtered cars
+        if (cars.length === 0) {
+            return res.status(404).json({ message: 'No cars found for the selected category' });
+        }
+
+        return res.status(200).json({ cars });
+    } catch (error) {
+        console.error('Error while fetching cars by category:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+// Fetch cars based on the selected subcategory
+export const filterCarsBySubCategory = async (req, res) => {
+    try {
+        const { subCategory, category, filter } = req.query; // Get subcategory, category, and cost filters from query params
+        let filterQuery = { subCategory };
+        console.log(req.query)
+
+        if(!filter){
+            console.log("select costType First")
+            return res.status(404).json({
+                message : "Please select costType first!"
+            })
+        }  
+
+        if(!category){
+            console.log("select category First")
+            return res.status(404).json({
+                message : "Please select category first!"
+            })
+        }
+
+        if(!subCategory){
+            console.log("select Subcategory First")
+            return res.status(404).json({
+                message : "Please select Subcategory first!"
+            })
+        } 
+
+        // Apply category and cost filters if specified
+        if (category) {
+            filterQuery.category = category;
+        }
+        if (filter === 'low_cost') {
+            filterQuery.pricePerDay = { $lte: 50 };
+        } else if (filter === 'normal_cost') {
+            filterQuery.pricePerDay = { $gt: 50 };
+        }
+
+        // Fetch the cars filtered by subcategory
+        const cars = await Car.find(filterQuery);
+        console.log("Filtered Car : ",cars)
+
+        // Return the filtered cars
+        if (cars.length === 0) {
+            return res.status(404).json({ message: 'No cars found for the selected subcategory' });
+        }
+
+        return res.status(200).json({ cars });
+    } catch (error) {
+        console.error('Error while fetching cars by subcategory:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
   
+ 
