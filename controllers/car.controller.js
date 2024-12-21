@@ -273,6 +273,47 @@ export const getCarByCost = async (req, res) => {
     }
 };
 
+export const fetchSubCategory=async (req, res) => {
+    const { category } = req.params; // Extract category from request params
+  
+    try {
+      // Fetch distinct subcategories for the given category
+      const subcategories = await Car.distinct("subCategory", { category });
+  
+      if (subcategories.length === 0) {
+        return res.status(404).json({ message: `No subcategories found for category: ${category}` });
+      }
+  
+      res.json({
+        category,
+        subcategories,
+      });
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
+ 
+
+export const fetchCategory=async(req,res)=>{
+
+    try{
+        const categories = await Car.distinct("category");
+        
+        categories.forEach((category, index) => {
+          console.log(`${index + 1}. ${category}`);
+        });
+        res.status(200).json(
+       new ApiResponse(202,categories,"Successfully Fetch Categories")
+        
+        )
+
+    }
+    catch(error){
+        next(error.message || "Invalid Refresh Token.")
+    }
+}
 // Fetch cars based on the selected category
 export const filterCarsByCategory = async (req, res) => {
     try {
@@ -324,28 +365,28 @@ export const filterCarsBySubCategory = async (req, res) => {
     try {
         const { subCategory, category, filter } = req.query; // Get subcategory, category, and cost filters from query params
         let filterQuery = { subCategory };
-        console.log(req.query)
+        console.log(req.query);
 
-        if(!filter){
-            console.log("select costType First")
+        if (!filter) {
+            console.log("select costType First");
             return res.status(404).json({
-                message : "Please select costType first!"
-            })
-        }  
-
-        if(!category){
-            console.log("select category First")
-            return res.status(404).json({
-                message : "Please select category first!"
-            })
+                message: "Please select costType first!"
+            });
         }
 
-        if(!subCategory){
-            console.log("select Subcategory First")
+        if (!category) {
+            console.log("select category First");
             return res.status(404).json({
-                message : "Please select Subcategory first!"
-            })
-        } 
+                message: "Please select category first!"
+            });
+        }
+
+        if (!subCategory) {
+            console.log("select Subcategory First");
+            return res.status(404).json({
+                message: "Please select Subcategory first!"
+            });
+        }
 
         // Apply category and cost filters if specified
         if (category) {
@@ -359,14 +400,33 @@ export const filterCarsBySubCategory = async (req, res) => {
 
         // Fetch the cars filtered by subcategory
         const cars = await Car.find(filterQuery);
-        console.log("Filtered Car : ",cars)
+        console.log("Filtered Car : ", cars);
 
         // Return the filtered cars
         if (cars.length === 0) {
             return res.status(404).json({ message: 'No cars found for the selected subcategory' });
         }
 
-        return res.status(200).json({ cars });
+        // Format the response as an array of car objects
+        const formattedCars = cars.map(car => ({
+            id: car._id,
+            brand: car.brand,
+            model: car.model,
+            year: car.year,
+            seats: car.seats,
+            fuelType: car.fuelType,
+            pricePerDay: car.pricePerDay,
+            milage: car.milage,
+            color: car.color,
+            availabilityStatus: car.availabilityStatus,
+            features: car.features,
+            images: car.images,
+            location: car.location,
+            category: car.category,
+            subCategory: car.subCategory
+        }));
+
+        return res.status(200).json(formattedCars);
     } catch (error) {
         console.error('Error while fetching cars by subcategory:', error);
         return res.status(500).json({ message: 'Server error' });
