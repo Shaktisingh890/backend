@@ -3,7 +3,7 @@ import {Car} from '../models/car.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js'; 
 import { multerUpload } from '../middlewares/multerService.js';
 
-import { addCar,deleteCar,getAllCars, getCarById,updateCarDetails, getCarByCost, getCarByUserId, filterCarsByCategory , filterCarsBySubCategory } from '../controllers/car.controller.js';
+import { addCar,deleteCar,getAllCars, getCarById,updateCarDetails, getCarByCost, getCarByUserId, filterCarsByCategory , filterCarsBySubCategory, fetchCategory,fetchSubCategory } from '../controllers/car.controller.js';
 
 
 
@@ -30,6 +30,8 @@ router.delete('/deletaCar/:carId', deleteCar)
 // Route for filtering cars by category
 router.get('/getCarByCategory',authMiddleware, filterCarsByCategory );
 
+router.get('/getFetchCategory',authMiddleware, fetchCategory);
+router.get('/getFetchSubCategory/:category',authMiddleware,fetchSubCategory);
 // Route for filtering cars by subcategory
 router.get('/getCarBysubCategory',authMiddleware, filterCarsBySubCategory);
 
