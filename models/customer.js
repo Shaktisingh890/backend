@@ -39,6 +39,8 @@ const customerSchema = new mongoose.Schema({
     },
   },
 
+  deviceTokens: [String],
+
 }, { timestamps: true });
 
 
