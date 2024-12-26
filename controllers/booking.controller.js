@@ -56,6 +56,36 @@ export const createBooking = async (req, res) => {
     }
 }
 
+export const getBookingByPartner = async( req,res ) => {
+  const partner = req.user;
+  console.log("partner : ",partner);
+
+  const partner_Id = partner.linkedId;
+
+  try {
+    if(!partner_Id || !ObjectId.isValid(partner_Id)){
+        return res.status(400).json({success : false , message: " Invalid or missing partnerId" });
+    }
+    const bookings = await Booking.find({partnerId: new ObjectId(partner_Id)})
+    if(bookings.length === 0){
+        return res.status(404).json({success : false, message : " No Bookings Found! "});
+    }
+
+    const bookingMap = bookings.map((obj) => {
+        return obj.carId;
+    })
+    console.log("bookingMap : ",bookingMap);
+
+
+    const carDetails = await Car.find({ _id: { $in: bookingMap.map(id => new ObjectId(id)) } });
+    console.log("carDetails : ",carDetails);
+
+    console.log("booking : ",bookings)
+  } catch (error) {
+    
+  }
+}
+
 // export const partnerConfirmBooking = async (req, res) => {
 //     const {bookingId, driverId } = req.body;
 //     console.log(req.body);
@@ -73,7 +103,7 @@ export const createBooking = async (req, res) => {
 //         console.log("Now Booking Status: ",booking)
 //         await booking.save();
 
-//         await sendPartnerNotification(driverId, booking._id);
+//         // await sendPushNotification(driver.deviceTokens, title, body);
 
 //         res.status(200).json({message: " Booking confirmed by the partner, driver Notified"})
 //     } catch (error) {
