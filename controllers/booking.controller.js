@@ -26,7 +26,32 @@ export const createBooking = async (req, res) => {
         const end = new Date(endDate);
         const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
-        // Create a new booking
+        // Check if the car is already booked during the specified time range
+        const existingCarBooking = await Booking.findOne({
+            carId,
+            $or: [
+                { startDate: { $lte: end }, endDate: { $gte: start } }, // Overlapping dates
+                { startDate: { $gte: start }, endDate: { $lte: end } },   // Exact match or partial overlap
+            ],
+        });
+
+        if (existingCarBooking) {
+            return res.status(400).json({ error: 'Car is already booked during the specified time. Please choose another time.' });
+        }
+
+        // Check if the customer already has a booking during the same time range (same or different car)
+        const existingCustomerBooking = await Booking.findOne({
+            customerId,
+            $or: [
+                { startDate: { $lte: end }, endDate: { $gte: start } }, // Overlapping dates
+                { startDate: { $gte: start }, endDate: { $lte: end } },   // Exact match or partial overlap
+            ],
+        });
+
+        if (existingCustomerBooking) {
+            return res.status(400).json({ error: 'You already have a booking during the specified time. Please choose another time.' });
+        }
+
         const newBooking = new Booking({
             customerId,
             carId,
@@ -46,10 +71,10 @@ export const createBooking = async (req, res) => {
         console.log("Title : ",title )
         console.log("Body:  ",body )
 
-        // await newBooking.save();
+        await newBooking.save();
         await sendPushNotification(partner.deviceTokens, title, body);
 
-        // res.status(201).json({ message: 'Booking created and sent to partner for approval', booking: newBooking });
+        res.status(201).json({ message: 'Booking created and sent to partner for approval', booking: newBooking });  
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to create booking' });
