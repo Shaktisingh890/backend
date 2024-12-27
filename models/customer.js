@@ -16,28 +16,25 @@ const customerSchema = new mongoose.Schema({
   // Booking history for this customer
   bookingHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }],
 
-  // // Identification details
-  // identification: {
-  //   idType: {
-  //     type: String,
-  //     enum: ["passport", "nationalId"], // Specify type of ID
-  //     required: true,
-  //   },
-  //   idNumber: {
-  //     type: String,
-  //     required: true, // ID number is mandatory
-  //   },
-  //   idImages: {
-  //     type: [String], // Array of image URLs
-  //     required: true, // At least one image is required
-  //     validate: {
-  //       validator: function (value) {
-  //         return value.length >= 2; // Ensure at least two images are provided
-  //       },
-  //       message: "At least two images are required.",
-  //     },
-  //   },
-  // },
+  // Identification details
+  identification: {
+    idType: {
+      type: String,
+      enum: ["passport", "nationalId"], // Specify type of ID
+    },
+    idNumber: {
+      type: String,
+    },
+    idImages: {
+      type: [String], // Array of image URLs
+      validate: {
+        validator: function (value) {
+          return value.length >= 2; // Ensure at least two images are provided
+        },
+        message: "At least two images are required.",
+      },
+    },
+  },
 
   deviceTokens: [String],
 
