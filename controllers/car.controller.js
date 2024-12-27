@@ -364,7 +364,6 @@ export const filterCarsByCategory = async (req, res) => {
 export const filterCarsBySubCategory = async (req, res) => {
     try {
         const { subCategory, category, filter } = req.query; // Get subcategory, category, and cost filters from query params
-        let filterQuery = { subCategory };
         console.log(req.query);
 
         if (!filter) {
@@ -388,49 +387,72 @@ export const filterCarsBySubCategory = async (req, res) => {
             });
         }
 
-        // Apply category and cost filters if specified
+        // Build match stage based on query filters
+        const matchStage = {
+            subCategory: subCategory
+        };
+
         if (category) {
-            filterQuery.category = category;
-        }
-        if (filter === 'low_cost') {
-            filterQuery.pricePerDay = { $lte: 50 };
-        } else if (filter === 'normal_cost') {
-            filterQuery.pricePerDay = { $gt: 50 };
+            matchStage.category = category;
         }
 
-        // Fetch the cars filtered by subcategory
-        const cars = await Car.find(filterQuery);
-        console.log("Filtered Car : ", cars);
+        if (filter === 'low_cost') {
+            matchStage.pricePerDay = { $lte: 50 };
+        } else if (filter === 'normal_cost') {
+            matchStage.pricePerDay = { $gt: 50 };
+        }
+
+        // Aggregation pipeline
+        const cars = await Car.aggregate([
+            { $match: matchStage },
+            {
+                $lookup: {
+                    from: 'partners', // Replace with your partners collection name
+                    localField: 'partnerId',
+                    foreignField: '_id',
+                    as: 'partnerDetails'
+                }
+            },
+            {
+                $unwind: {
+                    path: "$partnerDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    id: "$_id",
+                    brand: 1,
+                    model: 1,
+                    year: 1,
+                    seats: 1,
+                    fuelType: 1,
+                    description: 1,
+                    pricePerDay: 1,
+                    milage: 1,
+                    color: 1,
+                    pickupLocation:1,
+                    dropoffLocation:1,
+                    availabilityStatus: 1,
+                    features: 1,
+                    images: 1,
+                    location: 1,
+                    category: 1,
+                    subCategory: 1,
+                    partnerId: 1,
+                    partnerDetails: 1 // Include partner details in the response
+                }
+            }
+        ]);
 
         // Return the filtered cars
         if (cars.length === 0) {
             return res.status(404).json({ message: 'No cars found for the selected subcategory' });
         }
 
-        // Format the response as an array of car objects
-        const formattedCars = cars.map(car => ({
-            id: car._id,
-            brand: car.brand,
-            model: car.model,
-            year: car.year,
-            seats: car.seats,
-            fuelType: car.fuelType,
-            pricePerDay: car.pricePerDay,
-            milage: car.milage,
-            color: car.color,
-            availabilityStatus: car.availabilityStatus,
-            features: car.features,
-            images: car.images,
-            location: car.location,
-            category: car.category,
-            subCategory: car.subCategory
-        }));
-
-        return res.status(200).json(formattedCars);
+        return res.status(200).json(cars);
     } catch (error) {
         console.error('Error while fetching cars by subcategory:', error);
         return res.status(500).json({ message: 'Server error' });
     }
 };
-  
- 
