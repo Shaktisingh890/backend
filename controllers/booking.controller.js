@@ -4,57 +4,227 @@ import { Partner } from "../models/partner.js";
 import { Customer } from "../models/customer.js";
 import { Booking } from "../models/booking.js";
 import { ObjectId } from "mongodb";
+import { sendPushNotification } from "../services/NotificationServices.js";
 
 export const createBooking = async (req, res) => {
 
     console.log("booking Data is : ", req.body)
     try {
-        const { customerId, carId, driverId, partnerId, startDate, endDate, totalAmount } = req.body;
-
+        const { customerId, carId, withDriver, startDate, endDate, totalAmount } = req.body;
+        console.log("All Data : ",req.body)
+    
         // Validate that the car is available for the given dates
         const car = await Car.findById(carId);
+        console.log("cars : ",car)
         if (!car) {
             return res.status(404).json({ error: 'Car not found' });
         }
-
-        const existingBooking = await Booking.findOne({
-            carId: carId,
-            $or: [
-                { startDate: { $lt: endDate }, endDate: { $gt: startDate } },
-                { startDate: { $gte: startDate, $lte: endDate } },
-                { endDate: { $gte: startDate, $lte: endDate } },
-            ],
-        });
-
-        if (existingBooking) {
-            return res.status(400).json({ message: 'Car is already booked for the selected dates' });
-        }
+        const partnerId = car.partnerId;
+        const partner = await Partner.findById(partnerId);
         // Calculate durationInDays
         const start = new Date(startDate);
         const end = new Date(endDate);
         const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
-        // Create a new booking
+        // Check if the car is already booked during the specified time range
+        const existingCarBooking = await Booking.findOne({
+            carId,
+            $or: [
+                { startDate: { $lte: end }, endDate: { $gte: start } }, // Overlapping dates
+                { startDate: { $gte: start }, endDate: { $lte: end } },   // Exact match or partial overlap
+            ],
+        });
+
+        if (existingCarBooking) {
+            return res.status(400).json({ error: 'Car is already booked during the specified time. Please choose another time.' });
+        }
+
+        // Check if the customer already has a booking during the same time range (same or different car)
+        const existingCustomerBooking = await Booking.findOne({
+            customerId,
+            $or: [
+                { startDate: { $lte: end }, endDate: { $gte: start } }, // Overlapping dates
+                { startDate: { $gte: start }, endDate: { $lte: end } },   // Exact match or partial overlap
+            ],
+        });
+
+        if (existingCustomerBooking) {
+            return res.status(400).json({ error: 'You already have a booking during the specified time. Please choose another time.' });
+        }
+
         const newBooking = new Booking({
             customerId,
             carId,
-            driverId,
             partnerId,
             startDate,
             endDate,
             totalAmount,
             durationInDays,
+            driverStatus: withDriver ? 'pending' : 'not_needed',
         });
 
-        await newBooking.save();
+        console.log("New Booking : ",newBooking)
+        const title = "🔔New Car Booking Alert!";
+        const body = `Hello ${partner.fullName}, a customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`
 
-        res.status(201).json({ message: 'Booking created successfully', booking: newBooking });
+        console.log("DeviceToken ",partner.deviceTokens )
+        console.log("Title : ",title )
+        console.log("Body:  ",body )
+
+        await newBooking.save();
+        await sendPushNotification(partner.deviceTokens, title, body);
+
+        res.status(201).json({ message: 'Booking created and sent to partner for approval', booking: newBooking });  
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to create booking' });
     }
 }
 
+export const getBookingByPartner = async( req,res ) => {
+  const partner = req.user;
+  console.log("partner : ",partner);
+
+  const partner_Id = partner.linkedId;
+
+  try {
+    if(!partner_Id || !ObjectId.isValid(partner_Id)){
+        return res.status(400).json({success : false , message: " Invalid or missing partnerId" });
+    }
+    const bookings = await Booking.find({partnerId: new ObjectId(partner_Id)})
+    if(bookings.length === 0){
+        return res.status(404).json({success : false, message : " No Bookings Found! "});
+    }
+
+    const bookingMap = bookings.map((obj) => {
+        return obj.carId;
+    })
+    console.log("bookingMap : ",bookingMap);
+
+
+    const carDetails = await Car.find({ _id: { $in: bookingMap.map(id => new ObjectId(id)) } });
+    console.log("carDetails : ",carDetails);
+
+    console.log("booking : ",bookings)
+  } catch (error) {
+    
+  }
+}
+
+// export const partnerConfirmBooking = async (req, res) => {
+//     const {bookingId, driverId } = req.body;
+//     console.log(req.body);
+
+//     try {
+//         const booking = await Booking.findById(bookingId);
+//         console.log("Booking Found : ",booking)
+//         if(!booking) {
+//             return res.status(404).json({ error: " Booking Not Found "});
+//         }
+
+//         booking.driverId = driverId;
+//         booking.partnerStatus = 'confirmed'
+
+//         console.log("Now Booking Status: ",booking)
+//         await booking.save();
+
+//         // await sendPushNotification(driver.deviceTokens, title, body);
+
+//         res.status(200).json({message: " Booking confirmed by the partner, driver Notified"})
+//     } catch (error) {
+//         console.error("Ye Error : ",error);
+//         res.status(500).json({error : "Failed to confirm booking by partner"})
+//     }
+// }
+
+// // Function to send notification to driver
+// const sendDriverNotification = async (driverId, bookingId) => {
+//     // Assuming you have a driver model to find driver details
+//     const driver = await Driver.findById(driverId);
+//     const message = `You have a new booking request. Please confirm or reject the booking. Booking ID: ${bookingId}`;
+    
+//     // Send notification to driver (email, SMS, in-app)
+//     await sendEmail(driver.email, 'New Booking Request', message);
+//   };
+
+
+//   export const driverConfirmBooking = async (req, res) => {
+//     const { bookingId, driverStatus } = req.body; // driverStatus can be 'accepted' or 'rejected'
+  
+//     try {
+//       const booking = await Booking.findById(bookingId);
+//       if (!booking) {
+//         return res.status(404).json({ error: 'Booking not found' });
+//       }
+  
+//       // Update the driver status based on the driver's action
+//       booking.driverStatus = driverStatus;
+//       await booking.save();
+  
+//       if (driverStatus === 'accepted') {
+//         // Notify the partner that the driver accepted
+//         await sendPartnerNotification(booking.partnerId, bookingId);
+//         res.status(200).json({ message: 'Driver accepted the booking' });
+//       } else {
+//         // Notify both partner and customer that the driver rejected
+//         await sendRejectionNotifications(booking.partnerId, booking.customerId, bookingId);
+//         res.status(200).json({ message: 'Driver rejected the booking' });
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ error: 'Failed to update driver status' });
+//     }
+//   };
+
+//   // Send rejection notifications to partner and customer
+// const sendRejectionNotifications = async (partnerId, bookingId) => {
+//     const partner = await Partner.findById(partnerId);
+  
+//     // Notify partner
+//     const partnerMessage = `Driver rejected the booking. Please select another driver for Booking ID: ${bookingId}`;
+//     await sendEmail(partner.email, 'Booking Rejected by Driver', partnerMessage);
+  
+//   };
+
+//   export const partnerFinalConfirm = async (req, res) => {
+//     const { bookingId } = req.body;
+  
+//     try {
+//       const booking = await Booking.findById(bookingId);
+//       if (!booking) {
+//         return res.status(404).json({ error: 'Booking not found' });
+//       }
+  
+//       // Final confirmation by partner
+//       booking.status = 'confirmed'; // Booking finalized
+  
+//       await booking.save();
+  
+//       // Notify customer and driver about the final confirmation
+//       await sendFinalNotification(booking.customerId, booking.driverId, bookingId);
+  
+//       res.status(200).json({ message: 'Booking confirmed successfully' });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).json({ error: 'Failed to confirm booking by partner' });
+//     }
+//   };
+
+//   // Send final confirmation notification to customer and driver
+// const sendFinalNotification = async (customerId, driverId, bookingId) => {
+//     const customer = await Customer.findById(customerId);
+//     const driver = await Driver.findById(driverId);
+  
+//     // Notify customer
+//     const customerMessage = `Your booking has been confirmed. Booking ID: ${bookingId}`;
+//     await sendEmail(customer.email, 'Booking Confirmed', customerMessage);
+  
+//     // Notify driver
+//     const driverMessage = `You have been assigned to a new booking. Booking ID: ${bookingId}`;
+//     await sendEmail(driver.email, 'Booking Assigned', driverMessage);
+//   };
+
+  
 export const getBookingByCarId = async (req, res) => {
     const carId = req.params.carId;
      try {

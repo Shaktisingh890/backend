@@ -3,7 +3,7 @@ const bookingSchema = new mongoose.Schema({
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   carId: { type: mongoose.Schema.Types.ObjectId, ref: 'Car', required: true },
   driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' }, // Assigned driver
-  partnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner', required: true },
+  partnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner' },
 
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
@@ -13,6 +13,8 @@ const bookingSchema = new mongoose.Schema({
   status: { type: String, enum: ['booked', 'ongoing', 'completed', 'cancelled'], default: 'booked' },
 
   penalties: { type: Number, default: 0 }, // Penalties for cancellations or amendments
+  partnerStatus: { type: String, enum: ['pending', 'confirmed', 'rejected'], default: 'pending' },
+  driverStatus: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
 }, { timestamps: true });
 
 // Automatically calculate durationInDays before saving the document
