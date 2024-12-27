@@ -46,6 +46,8 @@ const carSchema = new mongoose.Schema({
   //     },
   //   },
   // ],
+  pickupLocation:{type:String,required:true},
+  dropoffLocation:{type:String,required:true},
   category: { type: String, required: true }, // New category field
   subCategory: { type: String, required: true }, // New subCategory field
 }, { timestamps: true });
