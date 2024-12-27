@@ -23,6 +23,7 @@ const driverSchema = new mongoose.Schema({
 
   // List of bookings assigned to this driver
   bookings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }],
+  deviceTokens: [String],
 
 }, { timestamps: true });
 

@@ -15,7 +15,9 @@ const partnerSchema = new Schema({
       accountNumber: String,
       bankName: String,
     },
-    termsAccepted: { type: Boolean, default: false }
+    termsAccepted: { type: Boolean, default: false },
+    deviceTokens: [String],
+    
   });
   
 

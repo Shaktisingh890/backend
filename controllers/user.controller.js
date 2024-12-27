@@ -101,7 +101,7 @@ const loginUser = async (req, res,next) => {
 
   if (!email || !password) {
    
-    throw new ApiError(400, "Email and password are required.");
+    throw new ApiError(400, "Email and password or devivetoken are required.");
   }
 
   try {
