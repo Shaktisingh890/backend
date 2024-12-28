@@ -20,7 +20,7 @@ const customerSchema = new mongoose.Schema({
   identification: {
     idType: {
       type: String,
-      enum: ["passport", "nationalId"], // Specify type of ID
+      enum: ["Passport", "National ID"], // Specify type of ID
     },
     idNumber: {
       type: String,
