@@ -13,8 +13,10 @@ router.post("/customerRegister",multerUpload.fields([
 ]),registerCustomer)
 
 router.put("/upload-id",authMiddleware,multerUpload.fields([
-    {name: 'image1', maxCount: 1},
-    {name: 'image2', maxCount: 1},
+    {name: 'front_photo', maxCount: 1},
+    {name: 'back_photo', maxCount:1},
+    {name: 'type', maxCount: 1},
+    {name: 'id_number', maxCount: 1}
 ]), uploadIdentification);
 
 export default router;

@@ -97,15 +97,18 @@ const registerUser = async (req, res) => {
 
 // POST: Login a user
 const loginUser = async (req, res,next) => {
-  const { email, password } = req.body;
+  const { email, password, deviceToken } = req.body;
+  console.log("Ye : ",req.body)
 
   if (!email || !password) {
    
-    throw new ApiError(400, "Email and password or devivetoken are required.");
+    throw new ApiError(400, "Email and password are required.");
   }
 
   try {
     const user = await User.findOne({ email });
+
+    console.log("User hai : ",user)
 
     if (!user) {
       throw new ApiError(401,'User does not exist.')
@@ -113,13 +116,42 @@ const loginUser = async (req, res,next) => {
 
     const type = user.role;
 
-
-
    const isPasswordValid=await user.isPasswordCorrect(password);
     // Compare the plain text password directly (no hashing)
     if(!isPasswordValid){
     
       throw new ApiError(401,'Invalid user credentials.')
+    }
+
+    // Step 3: Check the user's role and associated collection
+    let roleSpecificData;
+    if (user.role === "customer") {
+      roleSpecificData = await Customer.findById(user.linkedId); // Assuming linkedId connects User to Customer
+      console.log("User DATA by ROLE : ",roleSpecificData)
+    } else if (user.role === "driver") {
+      roleSpecificData = await Driver.findById(user.linkedId); // Example for another role
+      console.log("User DATA by ROLE : ",roleSpecificData)
+    }else if (user.role === "partner") {
+      roleSpecificData = await Partner.findById(user.linkedId); // Example for another role
+      console.log("User DATA by ROLE : ",roleSpecificData)
+    }  else {
+      throw new ApiError(400, "Unsupported user role.");
+    }
+
+    if (!roleSpecificData) {
+      throw new ApiError(404, "Role-specific data not found.");
+    }
+
+    // Step 4: Check if the deviceToken already exists
+    if (roleSpecificData.deviceTokens && roleSpecificData.deviceTokens.includes(deviceToken)) {
+      console.log(`Device token already exists for this ${user.role}:`, deviceToken);
+    } else {
+      if (!roleSpecificData.deviceTokens) {
+        roleSpecificData.deviceTokens = [];
+      }
+      roleSpecificData.deviceTokens.push(deviceToken);
+      await roleSpecificData.save();
+      console.log(`Device token saved for the ${user.role}:`, deviceToken);
     }
 
     const {accessToken,refreshToken}= await generateAccessAndRefereshTokens(user._id,type);
