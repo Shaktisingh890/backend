@@ -38,6 +38,10 @@ const requestLogger = (req, res, next) => {
   next();
 };
 
+app.post('/callback', (req, res) => {
+  console.log('Received callback:', req.body);
+  res.status(200).send('OK'); // Respond with 200 status
+});
 // Use the request logger middleware to log all incoming requests
 app.use(requestLogger);
 
