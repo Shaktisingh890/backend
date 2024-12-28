@@ -162,42 +162,47 @@ const loginCustomer = async (req, res, next) => {
 
 const uploadIdentification = async (req, res) => {
   const userId = req.user.linkedId; 
-  console.log("User : ",userId)
-  try {
-    const { idType, idNumber } = req.body; 
-    console.log(req.body)
-    let imageUrls = [];
 
-    const validIdTypes = ["passport", "nationalId"];
+  try {
+    const { type, id_number } = req.body; 
+    const idType = type;
+    const idNumber = id_number;
+    
+    let imageUrls = [];
+    const validIdTypes = ["Passport", "National ID"];
     if (!validIdTypes.includes(idType)) {
       return res.status(400).json({ error: "Invalid ID type provided." });
     }
-
     if (!idNumber) {
       return res.status(400).json({ error: "ID number is required." });
     }
-
+    const customer = await Customer.findById(userId)
+    if(!customer){
+      return res.status(404).json({
+        message : "Customer not exist"
+      })
+    }
+    if(
+      customer.identification &&
+      customer.identification.idType === idType &&
+      customer.identification.idNumber === idNumber
+    ){
+      return res.status(400).json({
+        message: "document already exist"
+      })
+    }
     if (req.files) {
       for (const [key, files] of Object.entries(req.files)) {
         for (const file of files) {
           const localPath = file.path;
           console.log(`Uploading image from path: ${localPath}`);
-
-          // Upload to Cloudinary
           const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
             folder: 'identity_images',
             public_id: `customer_${userId}_${Date.now()}`, 
           });
-
           imageUrls.push(cloudinaryResponse.secure_url);
         }
       }
-
-      // // Ensure at least two images are provided
-      // if (imageUrls.length < 2) {
-      //   return res.status(400).json({ error: "At least two identification images are required." });
-      // }
-
       const customer = await Customer.findById(userId);
       if (!customer) {
         return res.status(404).json({ error: "Customer not found." });
@@ -214,7 +219,7 @@ const uploadIdentification = async (req, res) => {
 
       console.log("Customer : ",customer)
       await customer.save();
-
+      console.log("Document Saved Successfully.")
       return res.status(200).json({
         message: "Identification details updated successfully.",
         identification: customer.identification,
