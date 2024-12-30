@@ -26,6 +26,21 @@ const carSchema = new mongoose.Schema({
   },
   features: [String], // e.g., ['GPS', 'Bluetooth', 'Air Conditioning']
   images: [String], // Array of image URLs
+  docs:{
+    ownerDoc: { 
+       type : [String]
+      },
+     carDoc :  {
+      type: [String]
+      },
+     vehiclelic: {
+      type: [String]
+      },
+      bankPass: {
+        type: String
+      },
+    },
+
   partnerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Partner", // Link to the partner managing the car
