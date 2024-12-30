@@ -184,12 +184,14 @@ const uploadIdentification = async (req, res) => {
     }
     if(
       customer.identification &&
-      customer.identification.idType === idType &&
-      customer.identification.idNumber === idNumber
+      (customer.identification.idType !== idType || customer.identification.idNumber !== idNumber)
     ){
-      return res.status(400).json({
-        message: "document already exist"
-      })
+      {
+        customer.identification = {
+          idType: null,
+          idNumber: null,
+          idImages: [],
+        };
     }
     if (req.files) {
       for (const [key, files] of Object.entries(req.files)) {
@@ -203,18 +205,11 @@ const uploadIdentification = async (req, res) => {
           imageUrls.push(cloudinaryResponse.secure_url);
         }
       }
-      const customer = await Customer.findById(userId);
-      if (!customer) {
-        return res.status(404).json({ error: "Customer not found." });
-      }
 
       customer.identification = {
         idType,
         idNumber,
-        idImages: [
-          ...(customer.identification?.idImages || []), 
-          ...imageUrls,
-        ],
+        idImages: imageUrls,
       };
 
       console.log("Customer : ",customer)
@@ -224,6 +219,7 @@ const uploadIdentification = async (req, res) => {
         message: "Identification details updated successfully.",
         identification: customer.identification,
       });
+    }
     } else {
       console.log("No images uploaded");
       return res.status(400).json({ error: "No files to upload." });
