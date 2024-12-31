@@ -6,6 +6,7 @@ import cloudinary from '../config/cloudinary.js';
 import { Customer } from "../models/customer.js";
 import { cursorTo } from "readline";
 import User from "../models/user.js";
+import { ObjectId } from "mongodb";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -227,6 +228,39 @@ const uploadIdentification = async (req, res) => {
   } catch (error) {
     console.error("Error uploading identification details:", error);
     return res.status(500).json({ error: "An error occurred while updating identification details." });
+  }
+};
+
+export const getCustomerDetailsShort = async (req, res) => {
+  const userId = req.user.linkedId;
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const userDetails = await Customer.findOne({ _id: new ObjectId(userId) });
+
+    console.log("++  ",userDetails)
+    if (!userDetails) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const responseData = {
+        fullName : userDetails.fullName,
+        phoneNumber : userDetails.phoneNumber,
+        imgUrl : userDetails.imgUrl,
+    }
+
+    return res.status(200).json(new ApiResponse(200, responseData, "Customer details fetched Successfully"));
+
+  } catch (error) {
+    console.error("Error fetching customer details:", error);
+    return res.status(500).json(
+      new ApiResponse(500, null, `Error fetchong Customer details.`)
+    );
   }
 };
 
