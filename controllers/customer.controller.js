@@ -213,21 +213,18 @@ const uploadIdentification = async (req, res) => {
         idImages: imageUrls,
       };
 
-      console.log("Customer : ",customer)
       await customer.save();
+      const { identification } = customer;
       console.log("Document Saved Successfully.")
-      return res.status(200).json({
-        message: "Identification details updated successfully.",
-        identification: customer.identification,
-      });
+      return res.status(200).json(new ApiResponse(200, identification, "Identification details updated successfully."));
     }
     } else {
-      console.log("No images uploaded");
-      return res.status(400).json({ error: "No files to upload." });
+      console.log("Already Exist");
+      return res.status(400).json( new ApiResponse(400, null, "No files to upload." ));
     }
   } catch (error) {
     console.error("Error uploading identification details:", error);
-    return res.status(500).json({ error: "An error occurred while updating identification details." });
+    return res.status(500).json(new ApiResponse(400, null, "An error occurred while updating identification details." ));
   }
 };
 
@@ -263,6 +260,40 @@ export const getCustomerDetailsShort = async (req, res) => {
     );
   }
 };
+
+export const getCustomerIdentification = async (req, res) => {
+  const customerId = req.user.linkedId;
+
+  try {
+    if(!customerId){
+      return res.status(400).json({
+        message: "invalid user id"
+      })
+    }
+
+    const customer = await Customer.findOne({ _id: new ObjectId(customerId) });
+
+    console.log("Customer  ",customer)
+    if (!customer) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const responseData = {
+      idType : customer.identification.idType,
+      idNumber : customer.identification.idNumber,
+      idImages : customer.identification.idImages,
+    }
+    return res.status(200).json(new ApiResponse(200, responseData, "Customer Identification!"));
+
+  } catch (error) {
+    console.error("Error fetching customer Identification:", error);
+    return res.status(500).json(
+      new ApiResponse(500, null, `Error fetchong Customer Identification.`)
+    );
+  }
+}
 
 
 export { registerCustomer, loginCustomer, uploadIdentification }
