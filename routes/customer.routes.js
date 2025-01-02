@@ -1,5 +1,5 @@
 import Router from 'express';
-import { registerCustomer,loginCustomer, uploadIdentification, getCustomerDetailsShort } from '../controllers/customer.controller.js';
+import { registerCustomer,loginCustomer, uploadIdentification, getCustomerDetailsShort, getCustomerIdentification } from '../controllers/customer.controller.js';
 import { multerUpload } from '../middlewares/multerService.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js'; 
 
@@ -20,5 +20,7 @@ router.put("/upload-id",authMiddleware,multerUpload.fields([
 ]), uploadIdentification);
 
 router.get('/shortData',authMiddleware,getCustomerDetailsShort)
+
+router.get('/identification',authMiddleware,getCustomerIdentification)
 
 export default router;
