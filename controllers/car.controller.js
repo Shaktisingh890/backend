@@ -246,23 +246,30 @@ export const updateCarDetails = async (req, res) => {
 
 export const deleteCar = async (req, res) => {
     const carId = req.params.carId;
-    console.log("Car id for Delete : ", carId)
+    console.log("Car id for Delete:", carId);
 
     try {
-        const result = await Car.deleteOne({ _id: new ObjectId(carId) });
-        console.log("Result : ", result)
-        if (result.deletedCount > 0) {
-            console.log("Car deleted SuccessFully")
-            res.status(200).json({ message: `Car with id : ${carId} deleted SuccessFully` })
+        // Validate carId format
+        if (!ObjectId.isValid(carId)) {
+            return res.status(400).json({ message: "Invalid car ID format." });
+        }
+
+        // Delete the car
+        const result = await Car.findOneAndDelete({ _id: new ObjectId(carId) });
+        console.log("Result:", result);
+
+        if (result) {
+            console.log("Car deleted successfully");
+            return res.status(200).json({ message: `Car with id: ${carId} deleted successfully` });
         } else {
-            console.log("Car not found or not deleted")
-            res.status(404).json({ message: `Car with id : ${carId} not Found` })
+            console.log("Car not found");
+            return res.status(404).json({ message: `Car with id: ${carId} not found` });
         }
     } catch (error) {
-        console.error("this error : ", error);
-        res.status(500).json({ error: "Failed to delete car." });
+        console.error("Error occurred while deleting car:", error);
+        return res.status(500).json({ error: "Failed to delete car. Please try again later." });
     }
-}
+};
 
 export const getCarByCost = async (req, res) => {
     try {

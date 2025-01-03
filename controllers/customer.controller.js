@@ -183,50 +183,58 @@ const uploadIdentification = async (req, res) => {
         message : "Customer not exist"
       })
     }
-    if(
-      customer.identification &&
-      (customer.identification.idType !== idType || customer.identification.idNumber !== idNumber)
-    ){
-      {
-        customer.identification = {
-          idType: null,
-          idNumber: null,
-          idImages: [],
-        };
+     // Initialize identification if not present
+     if (!customer.identification) {
+      customer.identification = {
+        idType: null,
+        idNumber: null,
+        idImages: [],
+      };
     }
+
+    // Update `type` if provided
+    if (type) {
+      customer.identification.idType = type;
+    }
+
+    // Update `id_number` if provided
+    if (id_number) {
+      customer.identification.idNumber = id_number;
+    }
+
+    // Update images if provided
     if (req.files) {
+      const currentImages = customer.identification.idImages || [];
+
       for (const [key, files] of Object.entries(req.files)) {
         for (const file of files) {
           const localPath = file.path;
           console.log(`Uploading image from path: ${localPath}`);
           const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
             folder: 'identity_images',
-            public_id: `customer_${userId}_${Date.now()}`, 
+            public_id: `customer_${userId}_${Date.now()}`,
           });
-          imageUrls.push(cloudinaryResponse.secure_url);
+
+          // Update the images array dynamically based on the key
+          if (key === 'front_photo') {
+            currentImages[0] = cloudinaryResponse.secure_url; // Front photo at index 0
+          } else if (key === 'back_photo') {
+            currentImages[1] = cloudinaryResponse.secure_url; // Back photo at index 1
+          }
         }
       }
-
-      customer.identification = {
-        idType,
-        idNumber,
-        idImages: imageUrls,
-      };
-
+      customer.identification.idImages = currentImages; // Save updated images
+    }
       await customer.save();
       const { identification } = customer;
       console.log("Document Saved Successfully.")
       return res.status(200).json(new ApiResponse(200, identification, "Identification details updated successfully."));
-    }
-    } else {
-      console.log("Already Exist");
-      return res.status(400).json( new ApiResponse(400, null, "No files to upload." ));
-    }
-  } catch (error) {
+  }
+   catch (error) {
     console.error("Error uploading identification details:", error);
     return res.status(500).json(new ApiResponse(400, null, "An error occurred while updating identification details." ));
   }
-};
+}
 
 export const getCustomerDetailsShort = async (req, res) => {
   const userId = req.user.linkedId;
