@@ -9,6 +9,7 @@ const carSchema = new mongoose.Schema({
   seats: { type: Number, required: true },
   fuelType: { type: String, required: true }, // e.g., Petrol, Diesel, Electric
   pricePerDay: { type: Number, required: true },
+  registrationNumber: { type: String },
   milage: {type:Number},
   color: {type: String},
   description: {type: String},
