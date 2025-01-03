@@ -32,7 +32,7 @@ router.get('/getCarByCost', authMiddleware, getCarByCost);
 router.get('/getCarByUserId', authMiddleware, getCarByUserId)
 
 router.put('/updateCar/:carId', authMiddleware, updateCarDetails)
-router.delete('/deletaCar/:carId', deleteCar)
+router.delete('/deleteCar/:carId', deleteCar)
 
 // Route for filtering cars by category
 router.get('/getCarByCategory', authMiddleware, filterCarsByCategory);

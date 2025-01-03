@@ -27,12 +27,12 @@ const customerSchema = new mongoose.Schema({
     },
     idImages: {
       type: [String], // Array of image URLs
-      validate: {
-        validator: function (value) {
-          return value.length >= 2; // Ensure at least two images are provided
-        },
-        message: "At least two images are required.",
-      },
+      // validate: {
+      //   validator: function (value) {
+      //     return value.length >= 2; // Ensure at least two images are provided
+      //   },
+      //   message: "At least two images are required.",
+      // },
     },
   },
 
