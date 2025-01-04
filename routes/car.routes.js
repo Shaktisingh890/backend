@@ -31,7 +31,22 @@ router.get('/getCarByid/:carId', getCarById)
 router.get('/getCarByCost', authMiddleware, getCarByCost);
 router.get('/getCarByUserId', authMiddleware, getCarByUserId)
 
-router.put('/updateCar/:carId', authMiddleware, updateCarDetails)
+router.put('/updateCar/:carId', authMiddleware, multerUpload.fields(
+    [
+        { name: 'image0', maxCount: 1 },
+        { name: 'image1', maxCount: 1 },
+        { name: 'image2', maxCount: 1 },
+        { name: 'image3', maxCount: 1 },
+        { name: 'idfront', maxCount: 1 },
+        { name: 'idback', maxCount: 1 },
+        { name: 'cardocumentfront', maxCount: 1 },
+        { name: 'cardocumentback', maxCount: 1 },
+        { name: 'vechilelicensefront', maxCount: 1 },
+        { name: 'vechilelicenseback', maxCount: 1 },
+        { name: 'bankpassbookphoto', maxCount: 1 }
+    ]
+), updateCarDetails)
+
 router.delete('/deleteCar/:carId', deleteCar)
 
 // Route for filtering cars by category
