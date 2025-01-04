@@ -14,6 +14,12 @@ const partnerSchema = new Schema({
     paymentDetails: {
       accountNumber: String,
       bankName: String,
+      upi_id : String,
+    },
+    bussinessinfo: {
+      company_name : String,
+      company_add : String,
+      service_area : String,
     },
     termsAccepted: { type: Boolean, default: false },
     deviceTokens: [String],
