@@ -189,8 +189,8 @@ const loginUser = async (req, res,next) => {
 };
 
 
-// Controller to update user profile with text and file upload
 const updateProfile = async (req, res) => {
+  // console.log(req.body);
   const { fullName, email, phoneNumber, address } = req.body; // Extract text fields from body
 
   try {
@@ -204,8 +204,8 @@ const updateProfile = async (req, res) => {
       case 'customer':
         user = await Customer.findById(userId);
         if (!user) {
-        throw  new ApiError(404,"Customer not found")
-         
+          throw new ApiError(404, "Customer not found")
+
         }
         // Update customer-specific fields
         user.fullName = fullName || user.fullName;
@@ -217,19 +217,28 @@ const updateProfile = async (req, res) => {
       case 'partner':
         user = await Partner.findById(userId);
         if (!user) {
-        throw  new ApiError(404,"Partner not found")
+          throw new ApiError(404, "Partner not found")
         }
-        // Update partner-specific fields
+        
         user.fullName = fullName || user.fullName;
-        user.email = email || user.email; // Update email in Partner schema
+        user.email = email || user.email; 
         user.phoneNumber = phoneNumber || user.phoneNumber;
-        user.businessAddress = address || user.businessAddress;
+        user.address = address || user.address;
+        user.imgUrl = req.body.imgUrl || user.imgUrl; 
+        user.termsAccepted = req.body.termsAccepted !== undefined ? req.body.termsAccepted : user.termsAccepted;
+        user.paymentDetails.accountNumber = req.body.account || user.paymentDetails.accountNumber;
+        user.paymentDetails.upi_id = req.body.upi || user.paymentDetails.upi_id;
+        user.bussinessinfo.company_name = req.body.company || user.bussinessinfo.company_name;
+        user.bussinessinfo.company_add = req.body.companyAddress || user.bussinessinfo.company_add;
+        user.bussinessinfo.service_area = req.body.area || user.bussinessinfo.service_area;
+
+
         break;
 
       case 'driver':
         user = await Driver.findById(userId);
         if (!user) {
-         throw new ApiError(404,"Driver not found")
+          throw new ApiError(404, "Driver not found")
         }
         // Update driver-specific fields
         user.fullName = fullName || user.fullName;
@@ -239,25 +248,25 @@ const updateProfile = async (req, res) => {
         break;
 
       default:
-      throw  new ApiError(404,"User not found")    }
+        throw new ApiError(404, "User not found")
+    }
 
-    // Save the updated user document for the specific role (Customer/Partner/Driver)
     const updatedUser = await user.save();
-    
-
-    const mainUserId=req.user._id;
+    // console.log("updated user :",updatedUser)
+    const mainUserId = req.user._id;
     // Now, also update the email in the main User schema to ensure consistency
-    const mainUser = await User.findById(mainUserId); // Get the main User document
+    const mainUser = await User.findById(mainUserId);
     if (!mainUser) {
-      throw new ApiError(404,"User Not found")    }
+      throw new ApiError(404, "User Not found")
+    }
 
-    mainUser.email = email || mainUser.email; // Update email in the main User schema
-    const updatedMainUser = await mainUser.save(); // Save the updated main user
+    mainUser.email = email || mainUser.email; 
+    const updatedMainUser = await mainUser.save(); 
 
     // If saving the main user fails, throw an error
     if (!updatedMainUser) {
-      throw new ApiError(404,"Failed to update main user email")
-     
+      throw new ApiError(404, "Failed to update main user email")
+
     }
 
     // Log the updated user data to the console (response logging)
@@ -270,17 +279,13 @@ const updateProfile = async (req, res) => {
 
     // Send the success response
     res.status(200).json(
-      new ApiResponse(200,updatedUser,"Update Successfully")
+      new ApiResponse(200, updatedUser, "Update Successfully")
     );
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error. Could not update profile." });
   }
 };
-
-
-
-
 
 // Fetch user profile by userId
 const getUserProfile = async (req, res) => {
