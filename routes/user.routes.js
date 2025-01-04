@@ -36,6 +36,11 @@ router.post("/updateProfile",authMiddleware,multerUpload.fields([
     { name: 'email', maxCount: 1 }, // Handle email (not an image)
     { name: 'mobile', maxCount: 1 }, // Handle mobile number (not an image)
     { name: 'password', maxCount: 1 }, // Handle password (not an image)
+    {name:'company', maxCount:1 },
+    {name:'companyAddress', maxCount:1 },
+    {name:'area', maxCount:1 },
+    {name:'account', maxCount:1 },
+    {name:'upi', maxCount:1 },
   ]),updateProfile);
 
 
@@ -45,4 +50,4 @@ router.post("/updateProfile",authMiddleware,multerUpload.fields([
 
   router.post("/test",mytest)
 
-export default router;  
+export default router;
