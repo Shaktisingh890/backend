@@ -222,52 +222,121 @@ export const getCarByUserId = async (req, res) => {
 };
 
 export const updateCarDetails = async (req, res) => {
-    const carId = req.params.carId
-    console.log("Cars :",carId)
-    console.log("CarDetails :",req.body)
+    const carId = req.params.carId;
+    console.log("Cars :", carId);
+    // console.log("CarDetails :", req.body);
 
     try {
         // Parse carDetails from request body
-        const carDetails = req.body ? JSON.parse(req.body) : req.body;
-
-        console.log("carDetails +++ : ",carDetails)
+        const carDetails = req.body.carDetails ? JSON.parse(req.body.carDetails) : req.body.carDetails;
+        
         // Ensure the carDetails object is not empty or undefined
         if (!carDetails) {
             throw new ApiError(400, 'carDetails is missing or empty');
         }
 
-        const { carId } = req.params; // Car ID from route params
-        const files = req.files; // Uploaded files
-
-
-        // Destructure fields from carDetails
+        const { carId } = req.params;
+        const files = req.files; 
         const {
             carName, carModel, carYear, seatingCapacity, fuelType, dailyRentalPrice, carMileagePerHour: mileage, carColor: color, description, features, category, subcategory, pickupLocation, dropoffLocation, registrationNumber, transmissionType,
         } = carDetails;
 
         // Find the car by ID
-        const car = await Car.findByPk(carId); // Replace with Mongoose `findById` if using MongoDB
+        const car = await Car.findById(carId);
         if (!car) {
             return res.status(404).json({ message: 'Car not found' });
         }
 
-        // Prepare file paths for each uploaded file
-        const images = {};
+        // Arrays to store Cloudinary URLs
+        let carImages = [];
+        let ownerDocImages = [];
+        let carDocImages = [];
+        let vehicleLicenseImages = [];
+        let bankPassImage = "";
+
         if (files) {
-            images.image0 = files.image0 ? files.image0[0].path : car.image0;
-            images.image1 = files.image1 ? files.image1[0].path : car.image1;
-            images.image2 = files.image2 ? files.image2[0].path : car.image2;
-            images.image3 = files.image3 ? files.image3[0].path : car.image3;
-            images.idfront = files.idfront ? files.idfront[0].path : car.idfront;
-            images.idback = files.idback ? files.idback[0].path : car.idback;
-            images.cardocumentfront = files.cardocumentfront ? files.cardocumentfront[0].path : car.cardocumentfront;
-            images.cardocumentback = files.cardocumentback ? files.cardocumentback[0].path : car.cardocumentback;
-            images.vechilelicensefront = files.vechilelicensefront ? files.vechilelicensefront[0].path : car.vechilelicensefront;
-            images.vechilelicenseback = files.vechilelicenseback ? files.vechilelicenseback[0].path : car.vechilelicenseback;
-            images.bankpassbookphoto = files.bankpassbookphoto ? files.bankpassbookphoto[0].path : car.bankpassbookphoto;
+            // Upload images to Cloudinary and store URLs in the respective arrays
+            if (files.image0) {
+                const image0 = await cloudinary.uploader.upload(files.image0[0].path);
+                carImages[0] = image0.secure_url; // Fixed: Use assignment instead of push
+            } else {
+                carImages[0] = car.images[0]; // Fixed: Use assignment instead of push
+            }
+        
+            if (files.image1) {
+                const image1 = await cloudinary.uploader.upload(files.image1[0].path);
+                carImages[1] = image1.secure_url;
+            } else {
+                carImages[1] = car.images[1];
+            }
+        
+            if (files.image2) {
+                const image2 = await cloudinary.uploader.upload(files.image2[0].path);
+                carImages[2] = image2.secure_url;
+            } else {
+                carImages[2] = car.images[2];
+            }
+        
+            if (files.image3) {
+                const image3 = await cloudinary.uploader.upload(files.image3[0].path);
+                carImages[3] = image3.secure_url; // Fixed: Changed carImage to carImages
+            } else {
+                carImages[3] = car.images[3];
+            }
+        
+            // Owner documents
+            if (files.idfront) {
+                const idfront = await cloudinary.uploader.upload(files.idfront[0].path);
+                ownerDocImages[0] = idfront.secure_url;
+            } else {
+                ownerDocImages[0] = car.docs.ownerDoc[0]; // Fixed: Retrieve from car.docs
+            }
+        
+            if (files.idback) {
+                const idback = await cloudinary.uploader.upload(files.idback[0].path);
+                ownerDocImages[1] = idback.secure_url;
+            } else {
+                ownerDocImages[1] = car.docs.ownerDoc[1];
+            }
+        
+            // Car documents
+            if (files.cardocumentfront) {
+                const cardocumentfront = await cloudinary.uploader.upload(files.cardocumentfront[0].path);
+                carDocImages[0] = cardocumentfront.secure_url;
+            } else {
+                carDocImages[0] = car.docs.carDoc[0];
+            }
+        
+            if (files.cardocumentback) {
+                const cardocumentback = await cloudinary.uploader.upload(files.cardocumentback[0].path);
+                carDocImages[1] = cardocumentback.secure_url;
+            } else {
+                carDocImages[1] = car.docs.carDoc[1];
+            }
+        
+            if (files.vechilelicensefront) {
+                const vechilelicensefront = await cloudinary.uploader.upload(files.vechilelicensefront[0].path);
+                vehicleLicenseImages[0] = vechilelicensefront.secure_url;
+            } else {
+                vehicleLicenseImages[0] = car.docs.vehiclelic[0];
+            }
+        
+            if (files.vechilelicenseback) {
+                const vechilelicenseback = await cloudinary.uploader.upload(files.vechilelicenseback[0].path);
+                vehicleLicenseImages[1] = vechilelicenseback.secure_url;
+            } else {
+                vehicleLicenseImages[1] = car.docs.vehiclelic[1];
+            }
+        
+            // Bank passbook image
+            if (files.bankpassbookphoto) {
+                const bankpassbookphoto = await cloudinary.uploader.upload(files.bankpassbookphoto[0].path);
+                bankPassImage = bankpassbookphoto.secure_url;
+            } else {
+                bankPassImage = car.bankpassbookphoto;
+            }
         }
 
-        // Update car details
         Object.assign(car, {
             carName,
             carModel,
@@ -285,7 +354,14 @@ export const updateCarDetails = async (req, res) => {
             dropoffLocation,
             registrationNumber,
             transmissionType,
-            ...images,
+           
+            images: carImages,
+            docs: {
+                ownerDoc: ownerDocImages,
+                carDoc: carDocImages,
+                vehiclelic: vehicleLicenseImages,
+                bankPass: bankPassImage,
+            },
         });
 
         // Save updated car
