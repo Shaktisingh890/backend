@@ -13,6 +13,7 @@ export const addCar = async function (req, res, next) {
     try {
         const carDetails = req.body.carDetails ? JSON.parse(req.body.carDetails) : req.body.carDetails;
 
+        console.log("Car details : ",carDetails)
         // Ensure the carDetails object is not empty or undefined
         if (!carDetails) {
             throw new ApiError(400, "carDetails is missing or empty");
@@ -36,7 +37,7 @@ export const addCar = async function (req, res, next) {
             registrationNumber,
             transmissionType,
         } = carDetails;
-
+        console.log("Car details : ",carDetails)
         // Check if required fields are missing
         if (!carName || !carModel || !carYear || !category || !subcategory || !pickupLocation || !dropoffLocation) {
             throw new ApiError(400, "Missing required fields in car details.");
@@ -49,7 +50,7 @@ export const addCar = async function (req, res, next) {
         let vehicleLicenseImages = [];
         let bankPassImage = "";
 
-        console.log("myfiles: ", req.files);
+        // console.log("myfiles: ", req.files);
 
         // Process the uploaded images
         if (req.files) {
@@ -57,7 +58,7 @@ export const addCar = async function (req, res, next) {
             for (const [key, files] of Object.entries(req.files)) {
                 for (let file of files) {
                     const localPath = file.path;
-                    console.log(`Uploading image from path: ${localPath}`);
+                    // console.log(`Uploading image from path: ${localPath}`);
 
                     try {
                         const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
@@ -205,7 +206,7 @@ export const getCarByUserId = async (req, res) => {
             return res.status(404).json({ success: false, message: "No car details found!" });
         }
 
-        console.log("Car details:", carDetails);
+        // console.log("Car details:", carDetails);
 
         res.status(200).json(
             new ApiResponse(201, carDetails, "Car details fetched successfully")
@@ -221,28 +222,87 @@ export const getCarByUserId = async (req, res) => {
 };
 
 export const updateCarDetails = async (req, res) => {
-    const carId = req.params.carId;
-    const updateDetails = req.body;
-
-    console.log("Car id for Update : ", carId)
-    console.log("Car Details for Update : ", updateDetails)
+    const carId = req.params.carId
+    console.log("Cars :",carId)
+    console.log("CarDetails :",req.body)
 
     try {
-        console.log("Update car Function run........")
-        const result = await Car.updateOne({ _id: new ObjectId(carId) }, { $set: updateDetails })
-        if (result.matchedCount > 0) {
-            console.log(`Car with id : ${carId} updated Successfully`)
-            res.status(200).json({ message: `Car with id : ${carId} updated Successfully ` })
-        } else {
-            console.log(`Car with Id ${carId} not found !`)
-            res.status(404).json({ message: `Car with Id ${carId} not found ! ` })
-        }
-    } catch (error) {
-        console.log("Error in update car function. invalid id")
-        res.status(500).json({ error: "Failed to update car." });
+        // Parse carDetails from request body
+        const carDetails = req.body ? JSON.parse(req.body) : req.body;
 
+        console.log("carDetails +++ : ",carDetails)
+        // Ensure the carDetails object is not empty or undefined
+        if (!carDetails) {
+            throw new ApiError(400, 'carDetails is missing or empty');
+        }
+
+        const { carId } = req.params; // Car ID from route params
+        const files = req.files; // Uploaded files
+
+
+        // Destructure fields from carDetails
+        const {
+            carName, carModel, carYear, seatingCapacity, fuelType, dailyRentalPrice, carMileagePerHour: mileage, carColor: color, description, features, category, subcategory, pickupLocation, dropoffLocation, registrationNumber, transmissionType,
+        } = carDetails;
+
+        // Find the car by ID
+        const car = await Car.findByPk(carId); // Replace with Mongoose `findById` if using MongoDB
+        if (!car) {
+            return res.status(404).json({ message: 'Car not found' });
+        }
+
+        // Prepare file paths for each uploaded file
+        const images = {};
+        if (files) {
+            images.image0 = files.image0 ? files.image0[0].path : car.image0;
+            images.image1 = files.image1 ? files.image1[0].path : car.image1;
+            images.image2 = files.image2 ? files.image2[0].path : car.image2;
+            images.image3 = files.image3 ? files.image3[0].path : car.image3;
+            images.idfront = files.idfront ? files.idfront[0].path : car.idfront;
+            images.idback = files.idback ? files.idback[0].path : car.idback;
+            images.cardocumentfront = files.cardocumentfront ? files.cardocumentfront[0].path : car.cardocumentfront;
+            images.cardocumentback = files.cardocumentback ? files.cardocumentback[0].path : car.cardocumentback;
+            images.vechilelicensefront = files.vechilelicensefront ? files.vechilelicensefront[0].path : car.vechilelicensefront;
+            images.vechilelicenseback = files.vechilelicenseback ? files.vechilelicenseback[0].path : car.vechilelicenseback;
+            images.bankpassbookphoto = files.bankpassbookphoto ? files.bankpassbookphoto[0].path : car.bankpassbookphoto;
+        }
+
+        // Update car details
+        Object.assign(car, {
+            carName,
+            carModel,
+            carYear,
+            seatingCapacity,
+            fuelType,
+            dailyRentalPrice,
+            mileage,
+            color,
+            description,
+            features,
+            category,
+            subcategory,
+            pickupLocation,
+            dropoffLocation,
+            registrationNumber,
+            transmissionType,
+            ...images,
+        });
+
+        // Save updated car
+        await car.save();
+
+        res.status(200).json({
+            message: 'Car details updated successfully',
+            car,
+        });
+    } catch (error) {
+        console.error('Error updating car details:', error);
+        res.status(500).json({
+            message: 'Failed to update car details',
+            error: error.message,
+        });
     }
-}
+};
 
 export const deleteCar = async (req, res) => {
     const carId = req.params.carId;
