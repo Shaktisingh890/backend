@@ -1,6 +1,6 @@
 // routes/userRoutes.js
 import {Router} from 'express'; 
-import { registerUser,loginUser,updateProfile,getUserProfile,uploadImage,logoutUser,refreshAccessToken } from '../controllers/user.controller.js'; 
+import { registerUser,loginUser,updateProfile,getUserProfile,uploadImage,logoutUser,refreshAccessToken, updatePassword } from '../controllers/user.controller.js'; 
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { mytest } from '../controllers/test.controller.js';
 
@@ -42,6 +42,8 @@ router.post("/updateProfile",authMiddleware,multerUpload.fields([
     {name:'account', maxCount:1 },
     {name:'upi', maxCount:1 },
   ]),updateProfile);
+
+  router.put('/update_password', updatePassword);
 
 
   router.post("/logout",authMiddleware,logoutUser);
