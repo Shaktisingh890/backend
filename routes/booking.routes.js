@@ -7,7 +7,7 @@ import { Booking } from '../models/booking.js';
 
 const router = Router();
 
-router.post('/createBooking',createBooking)
+router.post('/createBooking',authMiddleware, createBooking)
 router.get("/getAllBooking",getAllBooking)
 router.get('/getBookingByCarId/:carId',authMiddleware,getBookingByCarId)
 router.get("/getBookingByuserId", authMiddleware, getBookingByUserId)
