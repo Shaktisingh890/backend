@@ -149,7 +149,7 @@ export const createBooking = async (req, res) => {
 };
 
 export const getBookingByPartner = async (req, res) => {
-  const partner = req.user;
+  const partner = req.user.linkedId;
   console.log("partner : ", partner);
 
   const partner_Id = partner.linkedId;
@@ -477,12 +477,25 @@ export const deleteBookingById = async (req, res) => {
   }
 };
 
-// {
-//     "customerId": "6757e97d55efdf2920549202",
-//     "carId": "675810ecca5750437b8b0de8",
-//     "driverId": "6757e97d55efdf2920549202",
-//     "partnerId": "6757e97d55efdf2920549202",
-//     "startDate": "2024-12-15T10:00:00Z",
-//     "endDate": "2024-12-20T10:00:00Z",
-//     "totalAmount": 5000
-//   }
+export const getBookingById = async (req, res) => {
+  const  bookingId  = req.params.id;
+
+  try {
+      
+      if (!bookingId) {
+          return res.status(400).json(new ApiError( 400, {}, "Booking ID is required" ));
+      }
+
+      const booking = await Booking.findById(bookingId);
+
+      if (!booking) {
+          return res.status(404).json({ message: "Booking not found" });
+      }
+
+      return res.status(200).json(new ApiResponse(200, booking, "Booking fetched successfully"));
+      
+  } catch (error) {
+      console.error("Error fetching booking:", error);
+      return res.status(500).json(new ApiError(500, {}, "Error fetching booking"));
+  }
+};
