@@ -1,7 +1,7 @@
 import { Driver } from '../models/driver.js'
 import { ApiError } from '../utils/apiError.js'
 import User from '../models/user.js'
-
+import { Booking } from '../models/booking.js'
 import { multerUpload } from '../middlewares/multerService.js'
 import cloudinary from '../config/cloudinary.js'
 import { ApiResponse } from '../utils/apiResponse.js'
@@ -198,4 +198,35 @@ const getAllDrivers = async(req,res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
-export { registerDriver, loginDriver, getAllDrivers }
+
+const removeDriver = async (req, res) => {
+  const userId = req.user.linkedId;
+  const userId2 = req.user._id;
+  console.log("User : ",userId)
+
+  try {
+      // Delete user from 'users' collection
+      const userResult = await User.findByIdAndDelete(userId2);
+      // Delete user from 'customers' collection
+      const driverResult = await Driver.findByIdAndDelete(userId);
+      // Delete related bookings
+      const bookingResult = await Booking.deleteMany({ driverId: userId });
+
+      if (!userResult && !driverResult) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log("Deleted User : ", userResult);
+      console.log("Deleted Driver : ", driverResult);
+      console.log(`Deleted ${bookingResult.deletedCount} bookings`);
+
+      res.status(200).json({
+          message: "User, driver, and related bookings removed successfully.",
+      });
+  } catch (error) {
+      console.error("Error removing user and related data:", error);
+      res.status(500).json({ message: "Error removing user and related data", error });
+  }
+};
+
+export { registerDriver, loginDriver, getAllDrivers, removeDriver }
