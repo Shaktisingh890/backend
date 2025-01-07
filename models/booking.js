@@ -4,7 +4,8 @@ const bookingSchema = new mongoose.Schema({
   carId: { type: mongoose.Schema.Types.ObjectId, ref: 'Car', required: true },
   driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' }, // Assigned driver
   partnerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Partner' },
-
+  pickupLocation: {type : String, required : true},
+  dropoffLocation: {type : String, required : true},
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
   durationInDays: { type: Number, required: true }, // Automatically calculated

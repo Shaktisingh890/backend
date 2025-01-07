@@ -224,7 +224,7 @@ export const getCarByUserId = async (req, res) => {
 export const updateCarDetails = async (req, res) => {
     const carId = req.params.carId;
     console.log("Cars :", carId);
-    // console.log("CarDetails :", req.body);
+    console.log("CarDetails :", req.body);
 
     try {
         // Parse carDetails from request body
@@ -338,18 +338,18 @@ export const updateCarDetails = async (req, res) => {
         }
 
         Object.assign(car, {
-            carName,
-            carModel,
-            carYear,
-            seatingCapacity,
+            brand:carName,
+            model:carModel,
+            year:carYear,
+            seats:seatingCapacity,
             fuelType,
-            dailyRentalPrice,
+            pricePerDay:dailyRentalPrice,
             mileage,
             color,
             description,
             features,
             category,
-            subcategory,
+            subCategory: subcategory,
             pickupLocation,
             dropoffLocation,
             registrationNumber,
@@ -366,6 +366,7 @@ export const updateCarDetails = async (req, res) => {
 
         // Save updated car
         await car.save();
+        console.log("Updated car: ",car);
 
         res.status(200).json({
             message: 'Car details updated successfully',
