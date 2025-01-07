@@ -382,7 +382,7 @@ const getUserProfile = async (req, res) => {
       case "driver":
         user = await Driver.findById(userId).select("-password");
         break;
-      case "Partner":
+      case "partner":
         user = await Partner.findById(userId).select("-password");
         break;
 
