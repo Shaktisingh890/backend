@@ -7,6 +7,7 @@ import { Customer } from "../models/customer.js";
 import { cursorTo } from "readline";
 import User from "../models/user.js";
 import { ObjectId } from "mongodb";
+import { Booking } from "../models/booking.js";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -303,5 +304,34 @@ export const getCustomerIdentification = async (req, res) => {
   }
 }
 
+const removeCustomer = async (req, res) => {
+  const userId = req.user.linkedId;
+  const userId2 = req.user._id;
+  console.log("User : ",userId)
 
-export { registerCustomer, loginCustomer, uploadIdentification }
+  try {
+      // Delete user from 'users' collection
+      const userResult = await User.findByIdAndDelete(userId2);
+      // Delete user from 'customers' collection
+      const customerResult = await Customer.findByIdAndDelete(userId);
+      // Delete related bookings
+      const bookingResult = await Booking.deleteMany({ customerId: userId });
+
+      if (!userResult && !customerResult) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log("Deleted User:", userResult);
+      console.log("Deleted Customer:", customerResult);
+      console.log(`Deleted ${bookingResult.deletedCount} bookings`);
+
+      res.status(200).json({
+          message: "User, customer, and related bookings removed successfully.",
+      });
+  } catch (error) {
+      console.error("Error removing user and related data:", error);
+      res.status(500).json({ message: "Error removing user and related data", error });
+  }
+};
+
+export { registerCustomer, loginCustomer, uploadIdentification, removeCustomer }
