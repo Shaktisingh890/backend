@@ -2,8 +2,10 @@ import { Partner } from "../models/partner.js";
 import cloudinary from "../config/cloudinary.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { Car } from "../models/car.js";
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
+import { Booking } from "../models/booking.js";
 
 const generateAccessAndRefereshTokens = async (userId) => {
   try {
@@ -152,4 +154,39 @@ const loginPartner = async (req, res, next) => {
   }
 };
 
-export { registerPartner, loginPartner };
+const removePartner = async (req, res) => {
+  const userId = req.user.linkedId;
+  const userId2 = req.user._id;
+  console.log("User : ",userId)
+
+  try {
+      // Delete user from 'users' collection
+      const userResult = await User.findByIdAndDelete(userId2);
+      // Delete user from 'customers' collection
+      const partnerResult = await Partner.findByIdAndDelete(userId);
+      // Delete related bookings
+      const bookingResult = await Booking.deleteMany({ partnerId: userId });
+
+      const carsResult = await Car.deleteMany({ partnerId: userId });
+
+
+      if (!userResult && !partnerResult) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log("Deleted User : ", userResult);
+      console.log("Deleted Partner : ", partnerResult);
+      console.log(`Deleted ${bookingResult} bookings`);
+      console.log(`Deleted ${carsResult} Cars`);
+
+
+      res.status(200).json({
+          message: "User, Partner, and related bookings and Cars removed successfully.",
+      });
+  } catch (error) {
+      console.error("Error removing user and related data:", error);
+      res.status(500).json({ message: "Error removing user and related data", error });
+  }
+};
+
+export { registerPartner, loginPartner ,removePartner};
