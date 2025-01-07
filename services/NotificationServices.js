@@ -1,10 +1,16 @@
 import admin from "../config/firebase.js"
 
 export const sendPushNotification = async (deviceTokens, title, body) => {
-    console.log("--- In sendPushNotification ---")
-    console.log("deviceToken : ",deviceTokens)
-    console.log("title : ",title)
-    console.log("body : ",body)
+  console.log("--- In sendPushNotification ---");
+  console.log("deviceTokens (before filter):", deviceTokens);
+  
+  deviceTokens = Array.isArray(deviceTokens) 
+      ? deviceTokens.filter(token => token) 
+      : deviceTokens;
+
+  console.log("deviceTokens (after filter):", deviceTokens);
+  console.log("title:", title);
+  console.log("body:", body);
 
     if (Array.isArray(deviceTokens) && deviceTokens.length > 0) {
       // Send notification to multiple devices by looping through deviceTokens

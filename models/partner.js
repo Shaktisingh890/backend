@@ -27,10 +27,15 @@ const partnerSchema = new Schema({
   });
   
 
-partnerSchema.pre("save",function(next){
+partnerSchema.pre("save", async function(next){
   if(!this.isModified("password")) return next();
-  return this.password=bycrypt.hash(this.password,10);
+  this.password = await bycrypt.hash(this.password,10);
+  return next();
 })  
+
+partnerSchema.methods.isPasswordCorrect=function(password){
+ return bycrypt.compare(password,this.password)
+}
 
 partnerSchema.methods.generateAccessToken=function(){
   return jwt.sign(

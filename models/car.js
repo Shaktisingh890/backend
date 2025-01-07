@@ -10,7 +10,7 @@ const carSchema = new mongoose.Schema({
   fuelType: { type: String, required: true }, // e.g., Petrol, Diesel, Electric
   pricePerDay: { type: Number, required: true },
   registrationNumber: { type: String },
-  milage: {type:Number},
+  mileage: {type:Number},
   color: {type: String},
   description: {type: String},
   availabilityStatus: { 
@@ -66,6 +66,7 @@ const carSchema = new mongoose.Schema({
   dropoffLocation:{type:String,required:true},
   category: { type: String, required: true }, // New category field
   subCategory: { type: String, required: true }, // New subCategory field
+  transmissionType : {type : String},
 }, { timestamps: true });
 
 // Create a geospatial index for the location field
