@@ -34,9 +34,11 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ error: "Partner not found" });
     }
 
-    // Convert dates for accurate comparison
-    const start = new Date(pickUpDateTime);
-    const end = new Date(returnDateTime);
+    const [day, month, year, hour, minute] = pickUpDateTime.split(/[/: ]/);
+    const start = new Date(year, month - 1, day, hour, minute);
+    
+    const [rDay, rMonth, rYear, rHour, rMinute] = returnDateTime.split(/[/: ]/);
+    const end = new Date(rYear, rMonth - 1, rDay, rHour, rMinute);
 
     // Check if the car is already booked during the specified time range
     const existingCarBooking = await Booking.findOne({
@@ -130,8 +132,11 @@ export const createBooking = async (req, res) => {
     }
     const title = "🔔New Car Booking Alert!";
     const body = `Hello ${partner.fullName}, a customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`;
-
-    await sendPushNotification(partner.deviceTokens, title, body);
+    const dataPayload = {
+      bookingId: savedBooking._id.toString(),
+      click_action: "OPEN_PARTNER_BOOKING_REQUEST",
+    };
+    await sendPushNotification(partner.deviceTokens, title, body,dataPayload);
 
     res
       .status(201)
@@ -492,7 +497,20 @@ export const getBookingById = async (req, res) => {
           return res.status(404).json({ message: "Booking not found" });
       }
 
-      return res.status(200).json(new ApiResponse(200, booking, "Booking fetched successfully"));
+      
+      const car = await Car.findById(booking.carId)
+
+      if (!car) {
+        return res.status(404).json({ message: "car not found" });
+      }
+
+      const data = {
+        ...booking.toObject(),
+        carModel :car.model,
+        carName: car.brand,
+        pricePerDay:car.pricePerDay,
+    };
+      return res.status(200).json(new ApiResponse(200, data, "Booking fetched successfully"));
       
   } catch (error) {
       console.error("Error fetching booking:", error);
