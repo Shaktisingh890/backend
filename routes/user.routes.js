@@ -43,7 +43,7 @@ router.post("/updateProfile",authMiddleware,multerUpload.fields([
     {name:'upi', maxCount:1 },
   ]),updateProfile);
 
-  router.put('/update_password', updatePassword);
+  router.put('/update_password',authMiddleware, updatePassword);
 
 
   router.post("/logout",authMiddleware,logoutUser);

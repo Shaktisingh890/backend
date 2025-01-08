@@ -108,10 +108,12 @@ const registerUser = async (req, res) => {
 };
 
 const updatePassword = async (req, res) => {
-  const { email, password, newPassword } = req.body;
+  const email = req.user.email;
+
+  const { currentPassword, confirmPassword } = req.body;
   console.log("Passwords : ", req.body);
 
-  if (!email || !password || !newPassword) {
+  if ( !currentPassword || !confirmPassword) {
       throw new ApiError(400, "All fields are required");
   }
 
@@ -137,15 +139,15 @@ const updatePassword = async (req, res) => {
       if (!roleSpecificData) throw new ApiError(404, "Role-specific data not found.");
       console.log(roleSpecificData)
 
-      const isMatch = await user.isPasswordCorrect(password);
-      const isMatchRoleSpecific = await roleSpecificData.isPasswordCorrect(password);
+      const isMatch = await user.isPasswordCorrect(currentPassword);
+      const isMatchRoleSpecific = await roleSpecificData.isPasswordCorrect(currentPassword);
 
       if (!isMatch || !isMatchRoleSpecific) {
           throw new ApiError(401, "Incorrect old password");
       }
 
-      user.password = newPassword;
-      roleSpecificData.password = newPassword;
+      user.password = confirmPassword;
+      roleSpecificData.password = confirmPassword;
 
       await user.save();
       await roleSpecificData.save();
