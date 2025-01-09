@@ -130,7 +130,7 @@ export const createBooking = async (req, res) => {
         .status(500)
         .json({ error: "Failed to retrieve booking data with car details" });
     }
-    const title = "🔔New Car Booking Alert!";
+    const title = "New Car Booking Alert!";
     const body = `Hello ${partner.fullName}, a customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`;
     const dataPayload = {
       bookingId: savedBooking._id.toString(),
