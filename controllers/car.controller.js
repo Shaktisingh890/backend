@@ -13,7 +13,7 @@ export const addCar = async function (req, res, next) {
     try {
         const carDetails = req.body.carDetails ? JSON.parse(req.body.carDetails) : req.body.carDetails;
 
-        console.log("Car details : ",carDetails)
+        // console.log("Car details : ",carDetails)
         // Ensure the carDetails object is not empty or undefined
         if (!carDetails) {
             throw new ApiError(400, "carDetails is missing or empty");
@@ -37,7 +37,7 @@ export const addCar = async function (req, res, next) {
             registrationNumber,
             transmissionType,
         } = carDetails;
-        console.log("Car details : ",carDetails)
+        // console.log("Car details : ",carDetails)
         // Check if required fields are missing
         if (!carName || !carModel || !carYear || !category || !subcategory || !pickupLocation || !dropoffLocation) {
             throw new ApiError(400, "Missing required fields in car details.");
@@ -155,7 +155,7 @@ export const addCar = async function (req, res, next) {
 export const getAllCars = async (req, res) => {
     try {
         const cars = await Car.find()
-        console.log("All Cars", cars)
+        // console.log("All Cars", cars)
         return res.status(200).json({
             message: "All Cars Successfully fetched",
             data: cars
@@ -174,7 +174,7 @@ export const getCarById = async (req, res) => {
     try {
         const cardetails = await Car.findById({ _id: new ObjectId(carId) }).populate('partnerId')
         const bookings = await Booking.find({ carId: new ObjectId(carId) })
-        console.log("Car Details : ", cardetails)
+        // console.log("Car Details : ", cardetails)
         if (cardetails) {
             res.status(200).json({
                 message: " car Details Successfully fetched",
@@ -366,7 +366,7 @@ export const updateCarDetails = async (req, res) => {
 
         // Save updated car
         await car.save();
-        console.log("Updated car: ",car);
+        // console.log("Updated car: ",car);
 
         res.status(200).json({
             message: 'Car details updated successfully',
@@ -393,7 +393,7 @@ export const deleteCar = async (req, res) => {
 
         // Delete the car
         const result = await Car.findOneAndDelete({ _id: new ObjectId(carId) });
-        console.log("Result:", result);
+        // console.log("Result:", result);
 
         if (result) {
             console.log("Car deleted successfully");
@@ -411,7 +411,7 @@ export const deleteCar = async (req, res) => {
 export const getCarByCost = async (req, res) => {
     try {
         // Log the user and filter for debugging purposes
-        console.log("User:", req.user);
+        // console.log("User:", req.user);
         const { filter } = req.query;
         console.log("Filter:", filter);
 
@@ -438,7 +438,7 @@ export const getCarByCost = async (req, res) => {
 
         // Query the database with the filter query object
         const cars = await Car.find(filterQuery).lean(); // Using .lean() for plain JavaScript objects
-        console.log("Cars:", cars);
+        // console.log("Cars:", cars);
 
         // Return the array of cars directly in the response
         return res.status(200).json(cars);
@@ -521,7 +521,7 @@ export const filterCarsByCategory = async (req, res) => {
         // Fetch the cars filtered by category
         const cars = await Car.find(filterQuery);
 
-        console.log("Filtered Car : ", cars)
+        // console.log("Filtered Car : ", cars)
 
         // Return the filtered cars
         if (cars.length === 0) {
