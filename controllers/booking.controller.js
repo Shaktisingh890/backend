@@ -34,11 +34,11 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ error: "Partner not found" });
     }
 
-    const [day, month, year, hour, minute] = pickUpDateTime.split(/[/: ]/);
-    const start = new Date(year, month - 1, day, hour, minute);
     
-    const [rDay, rMonth, rYear, rHour, rMinute] = returnDateTime.split(/[/: ]/);
-    const end = new Date(rYear, rMonth - 1, rDay, rHour, rMinute);
+    const start = new Date(pickUpDateTime);
+    
+    
+    const end = new Date(returnDateTime);
 
     // Check if the car is already booked during the specified time range
     const existingCarBooking = await Booking.findOne({
@@ -157,16 +157,14 @@ export const getBookingByPartner = async (req, res) => {
   const partner = req.user.linkedId;
   console.log("partner : ", partner);
 
-  const partner_Id = partner.linkedId;
-
   try {
-    if (!partner_Id || !ObjectId.isValid(partner_Id)) {
+    if (!partner || !ObjectId.isValid(partner)) {
       return res
         .status(400)
         .json({ success: false, message: " Invalid or missing partnerId" });
     }
     const bookings = await Booking.find({
-      partnerId: new ObjectId(partner_Id),
+      partnerId: new ObjectId(partner),
     });
     if (bookings.length === 0) {
       return res
@@ -177,15 +175,17 @@ export const getBookingByPartner = async (req, res) => {
     const bookingMap = bookings.map((obj) => {
       return obj.carId;
     });
-    console.log("bookingMap : ", bookingMap);
+    // console.log("bookingMap : ", bookingMap);
 
     const carDetails = await Car.find({
       _id: { $in: bookingMap.map((id) => new ObjectId(id)) },
     });
-    console.log("carDetails : ", carDetails);
+    // console.log("carDetails : ", carDetails);
 
     console.log("booking : ", bookings);
-  } catch (error) {}
+  } catch (error) {
+    console.log("Error : ",error)
+  }
 };
 
 // export const partnerConfirmBooking = async (req, res) => {
@@ -483,7 +483,7 @@ export const deleteBookingById = async (req, res) => {
 };
 
 export const getBookingById = async (req, res) => {
-  const  bookingId  = req.params.id;
+  const  bookingId  = req.params.bookingId;
 
   try {
       
