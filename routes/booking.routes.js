@@ -15,7 +15,7 @@ router.get("/getBookingBydriverId", authMiddleware, getBookingByDriverId)
 router.get("/getBookingBypartner",authMiddleware, getBookingByPartner)
 router.delete("/delete/:driverId", deleteBookingById)
 router.put(`/paymentstatus`,updateBookingPaymentStatus)
-router.get(`/byId/:id`,getBookingById)
+router.get(`/byId/:bookingId`,authMiddleware ,getBookingById)
 
 
 // router.delete('/deleteAll', async (req, res) => {

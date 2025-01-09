@@ -18,7 +18,7 @@ export const authMiddleware = async (req, res, next) => {
       throw new ApiError(401, "Access Denied. No token provided.");
     }
     
-    console.log("Token received:", token);
+    // console.log("Token received:", token);
 
     // Verify the token using jwt.verify() method
     const decodedToken = jwt.verify(token, secretKey);
@@ -31,7 +31,7 @@ export const authMiddleware = async (req, res, next) => {
     
     const user = await User.findById(userId).select("-password -refreshToken");
     
-    console.log("user  :",user)
+    // console.log("user  :",user)
     // Check if the user exists
     if (!user) {
       throw new ApiError(401, "Invalid Access Token");
