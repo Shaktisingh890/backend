@@ -45,7 +45,7 @@ const registerUser = async (req, res) => {
     if (req.files && req.files.photo) {
       const photo = req.files.photo;
 
-      console.log(photo[0].path);
+      // console.log(photo[0].path);
       // Upload the photo to Cloudinary
       const cloudinaryResponse = await cloudinary.uploader.upload(
         photo[0].path,
@@ -137,7 +137,7 @@ const updatePassword = async (req, res) => {
       }
 
       if (!roleSpecificData) throw new ApiError(404, "Role-specific data not found.");
-      console.log(roleSpecificData)
+      // console.log(roleSpecificData)
 
       const isMatch = await user.isPasswordCorrect(currentPassword);
       const isMatchRoleSpecific = await roleSpecificData.isPasswordCorrect(currentPassword);
@@ -163,7 +163,7 @@ const updatePassword = async (req, res) => {
 // POST: Login a user
 const loginUser = async (req, res, next) => {
   const { email, password, deviceToken } = req.body;
-  console.log("Ye : ", req.body);
+  // console.log("Ye : ", req.body);
 
   if (!email || !password) {
     throw new ApiError(400, "Email and password are required.");
@@ -172,7 +172,7 @@ const loginUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
 
-    console.log("User hai : ", user);
+    // console.log("User hai : ", user);
 
     if (!user) {
       throw new ApiError(401, "User does not exist.");
@@ -190,13 +190,13 @@ const loginUser = async (req, res, next) => {
     let roleSpecificData;
     if (user.role === "customer") {
       roleSpecificData = await Customer.findById(user.linkedId); // Assuming linkedId connects User to Customer
-      console.log("User DATA by ROLE : ", roleSpecificData);
+      // console.log("User DATA by ROLE : ", roleSpecificData);
     } else if (user.role === "driver") {
       roleSpecificData = await Driver.findById(user.linkedId); // Example for another role
-      console.log("User DATA by ROLE : ", roleSpecificData);
+      // console.log("User DATA by ROLE : ", roleSpecificData);
     } else if (user.role === "partner") {
       roleSpecificData = await Partner.findById(user.linkedId); // Example for another role
-      console.log("User DATA by ROLE : ", roleSpecificData);
+      // console.log("User DATA by ROLE : ", roleSpecificData);
     } else {
       throw new ApiError(400, "Unsupported user role.");
     }
@@ -210,17 +210,17 @@ const loginUser = async (req, res, next) => {
       roleSpecificData.deviceTokens &&
       roleSpecificData.deviceTokens.includes(deviceToken)
     ) {
-      console.log(
-        `Device token already exists for this ${user.role}:`,
-        deviceToken
-      );
+      // console.log(
+      //   `Device token already exists for this ${user.role}:`,
+      //   deviceToken
+      // );
     } else {
       if (!roleSpecificData.deviceTokens) {
         roleSpecificData.deviceTokens = [];
       }
       roleSpecificData.deviceTokens.push(deviceToken);
       await roleSpecificData.save();
-      console.log(`Device token saved for the ${user.role}:`, deviceToken);
+      // console.log(`Device token saved for the ${user.role}:`, deviceToken);
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
@@ -350,12 +350,12 @@ const updateProfile = async (req, res) => {
     }
 
     // Log the updated user data to the console (response logging)
-    console.log("Updated User Profile:", {
-      fullName: updatedUser.fullName,
-      email: updatedUser.email,
-      phoneNumber: updatedUser.phoneNumber,
-      address: updatedUser.address,
-    });
+    // console.log("Updated User Profile:", {
+    //   fullName: updatedUser.fullName,
+    //   email: updatedUser.email,
+    //   phoneNumber: updatedUser.phoneNumber,
+    //   address: updatedUser.address,
+    // });
 
     // Send the success response
     res
@@ -373,7 +373,7 @@ const updateProfile = async (req, res) => {
 const getUserProfile = async (req, res) => {
   const userId = req.user.linkedId;
   const role = req.user.role;
-  console.log("my req file is ", req.user);
+  // console.log("my req file is ", req.user);
   try {
     // Find the user by userId, excluding the password field
     let user = null;
@@ -398,7 +398,7 @@ const getUserProfile = async (req, res) => {
     }
 
     // Log the user object to the terminal for debugging purposes
-    console.log("Fetched User Profile:", user);
+    // console.log("Fetched User Profile:", user);
     // console.log("access token",accessToken)
     // console.log("refresh token",refreshToken)
 
@@ -422,7 +422,7 @@ const uploadImage = async (req, res) => {
       throw new ApiError(400, "NO File Uploaded");
     }
 
-    console.log(req.files.file[0].path);
+    // console.log(req.files.file[0].path);
     // Log the file details for debugging
 
     // Upload image to Cloudinary
@@ -434,11 +434,11 @@ const uploadImage = async (req, res) => {
       }
     );
 
-    console.log("my file is ", req.user);
+    // console.log("my file is ", req.user);
     // Hardcoded user ID for testing
     const userId = req.user.linkedId;
     const role = req.user.role;
-    console.log("my id  is", userId);
+    // console.log("my id  is", userId);
 
     let updatedUser;
 

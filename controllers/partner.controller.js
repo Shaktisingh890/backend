@@ -45,7 +45,7 @@ const registerPartner = async (req, res, next) => {
 
     if (req.files && req.files.imgUrl) {
       const localPath = req.files.imgUrl[0].path;
-      console.log("localPath", localPath);
+      // console.log("localPath", localPath);
 
       const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
         folder: "partner_photos", // Optional: specify a folder in Cloudinary
@@ -72,7 +72,7 @@ const registerPartner = async (req, res, next) => {
     });
 
     const user = await newUser.save();
-    console.log("User : ",user)
+    // console.log("User : ",user)
 
     if (!user) {
       throw new ApiError(400, "Partner Registration Failed");
@@ -174,10 +174,10 @@ const removePartner = async (req, res) => {
           return res.status(404).json({ message: "User not found" });
       }
 
-      console.log("Deleted User : ", userResult);
-      console.log("Deleted Partner : ", partnerResult);
-      console.log(`Deleted ${bookingResult} bookings`);
-      console.log(`Deleted ${carsResult} Cars`);
+      // console.log("Deleted User : ", userResult);
+      // console.log("Deleted Partner : ", partnerResult);
+      // console.log(`Deleted ${bookingResult} bookings`);
+      // console.log(`Deleted ${carsResult} Cars`);
 
 
       res.status(200).json({
