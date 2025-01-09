@@ -316,7 +316,7 @@ export const getBookingByCarId = async (req, res) => {
         .json({ success: false, message: " No Bookings Found! " });
     }
 
-    console.log("Bookings : ", bookings);
+    // console.log("Bookings : ", bookings);
     res.status(200).json({
       success: true,
       message: "Booking Fetched SucccessFully",
@@ -351,7 +351,7 @@ export const getBookingByUserId = async (req, res) => {
       });
     }
 
-    console.log("Bookings : ", bookings);
+    // console.log("Bookings : ", bookings);
     res.status(200).json({
       success: true,
       message: "Bookings SucccessFully Fetched ",
@@ -386,7 +386,7 @@ export const getBookingByDriverId = async (req, res) => {
       });
     }
 
-    console.log("bookings : ", bookings);
+    // console.log("bookings : ", bookings);
 
     res.status(200).json({
       success: true,
@@ -405,7 +405,7 @@ export const getBookingByDriverId = async (req, res) => {
 export const getAllBooking = async (req, res) => {
   try {
     const bookings = await Booking.find();
-    console.log("Data : ", bookings);
+    // console.log("Data : ", bookings);
     return res.status(200).json({
       message: "Booking fetchewd",
       data: bookings,
@@ -417,11 +417,11 @@ export const getAllBooking = async (req, res) => {
 
 export const updateBookingPaymentStatus = async (req, res) => {
   const { bookingId, paymentStatus } = req.body;
-  console.log("request : ", req.body);
+  // console.log("request : ", req.body);
 
   try {
     const booking = await Booking.findById(bookingId);
-    console.log("Booking : ", booking);
+    // console.log("Booking : ", booking);
     if (!booking) {
       throw new Error("Booking not found");
     }
@@ -454,12 +454,12 @@ export const deleteBookingById = async (req, res) => {
     }
 
     const driver = new ObjectId(driverId);
-    console.log("objectId Booking:", driver);
+    // console.log("objectId Booking:", driver);
 
     // Find and delete the booking
     const deletedBooking = await Booking.findOneAndDelete({ driverId: driver });
 
-    console.log("Deleted Booking:", deletedBooking);
+    // console.log("Deleted Booking:", deletedBooking);
 
     if (!deletedBooking) {
       return res.status(404).json({
