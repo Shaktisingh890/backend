@@ -7,6 +7,7 @@ import { ObjectId } from "mongodb";
 import { sendPushNotification } from "../services/NotificationServices.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import moment from 'moment';
 
 export const createBooking = async (req, res) => {
   const customerId = req.user.linkedId;
@@ -34,11 +35,9 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ error: "Partner not found" });
     }
 
-    const [day, month, year, hour, minute] = pickUpDateTime.split(/[/: ]/);
-    const start = new Date(year, month - 1, day, hour, minute);
     
-    const [rDay, rMonth, rYear, rHour, rMinute] = returnDateTime.split(/[/: ]/);
-    const end = new Date(rYear, rMonth - 1, rDay, rHour, rMinute);
+    const start = moment(pickUpDateTime, 'DD/MM/YYYY HH:mm').toDate();
+    const end = moment(returnDateTime, 'DD/MM/YYYY HH:mm').toDate();
 
     // Check if the car is already booked during the specified time range
     const existingCarBooking = await Booking.findOne({
@@ -79,14 +78,13 @@ export const createBooking = async (req, res) => {
       partnerId,
       pickupLocation: pickUpLocation,
       dropoffLocation: returnLocation,
-      startDate: pickUpDateTime,
-      endDate: returnDateTime,
+      startDate: start,
+      endDate: end,
       totalAmount: totalRent,
       durationInDays: durationInHours, // Ensure this is the correct unit (Days)
       driverStatus: isDriverRequired ? "pending" : "accepted",
     });
 
-    // Save the booking
     const savedBooking = await newBooking.save();
 
     // Use aggregation pipeline to include only brand and model from car data
@@ -130,7 +128,7 @@ export const createBooking = async (req, res) => {
         .status(500)
         .json({ error: "Failed to retrieve booking data with car details" });
     }
-    const title = "🔔New Car Booking Alert!";
+    const title = "New Car Booking Alert!";
     const body = `Hello ${partner.fullName}, a customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`;
     const dataPayload = {
       bookingId: savedBooking._id.toString(),
@@ -157,16 +155,14 @@ export const getBookingByPartner = async (req, res) => {
   const partner = req.user.linkedId;
   console.log("partner : ", partner);
 
-  const partner_Id = partner.linkedId;
-
   try {
-    if (!partner_Id || !ObjectId.isValid(partner_Id)) {
+    if (!partner || !ObjectId.isValid(partner)) {
       return res
         .status(400)
         .json({ success: false, message: " Invalid or missing partnerId" });
     }
     const bookings = await Booking.find({
-      partnerId: new ObjectId(partner_Id),
+      partnerId: new ObjectId(partner),
     });
     if (bookings.length === 0) {
       return res
@@ -177,15 +173,17 @@ export const getBookingByPartner = async (req, res) => {
     const bookingMap = bookings.map((obj) => {
       return obj.carId;
     });
-    console.log("bookingMap : ", bookingMap);
+    // console.log("bookingMap : ", bookingMap);
 
     const carDetails = await Car.find({
       _id: { $in: bookingMap.map((id) => new ObjectId(id)) },
     });
-    console.log("carDetails : ", carDetails);
+    // console.log("carDetails : ", carDetails);
 
     console.log("booking : ", bookings);
-  } catch (error) {}
+  } catch (error) {
+    console.log("Error : ",error)
+  }
 };
 
 // export const partnerConfirmBooking = async (req, res) => {
@@ -316,7 +314,7 @@ export const getBookingByCarId = async (req, res) => {
         .json({ success: false, message: " No Bookings Found! " });
     }
 
-    console.log("Bookings : ", bookings);
+    // console.log("Bookings : ", bookings);
     res.status(200).json({
       success: true,
       message: "Booking Fetched SucccessFully",
@@ -351,7 +349,7 @@ export const getBookingByUserId = async (req, res) => {
       });
     }
 
-    console.log("Bookings : ", bookings);
+    // console.log("Bookings : ", bookings);
     res.status(200).json({
       success: true,
       message: "Bookings SucccessFully Fetched ",
@@ -386,7 +384,7 @@ export const getBookingByDriverId = async (req, res) => {
       });
     }
 
-    console.log("bookings : ", bookings);
+    // console.log("bookings : ", bookings);
 
     res.status(200).json({
       success: true,
@@ -405,7 +403,7 @@ export const getBookingByDriverId = async (req, res) => {
 export const getAllBooking = async (req, res) => {
   try {
     const bookings = await Booking.find();
-    console.log("Data : ", bookings);
+    // console.log("Data : ", bookings);
     return res.status(200).json({
       message: "Booking fetchewd",
       data: bookings,
@@ -417,11 +415,11 @@ export const getAllBooking = async (req, res) => {
 
 export const updateBookingPaymentStatus = async (req, res) => {
   const { bookingId, paymentStatus } = req.body;
-  console.log("request : ", req.body);
+  // console.log("request : ", req.body);
 
   try {
     const booking = await Booking.findById(bookingId);
-    console.log("Booking : ", booking);
+    // console.log("Booking : ", booking);
     if (!booking) {
       throw new Error("Booking not found");
     }
@@ -454,12 +452,12 @@ export const deleteBookingById = async (req, res) => {
     }
 
     const driver = new ObjectId(driverId);
-    console.log("objectId Booking:", driver);
+    // console.log("objectId Booking:", driver);
 
     // Find and delete the booking
     const deletedBooking = await Booking.findOneAndDelete({ driverId: driver });
 
-    console.log("Deleted Booking:", deletedBooking);
+    // console.log("Deleted Booking:", deletedBooking);
 
     if (!deletedBooking) {
       return res.status(404).json({
@@ -483,7 +481,7 @@ export const deleteBookingById = async (req, res) => {
 };
 
 export const getBookingById = async (req, res) => {
-  const  bookingId  = req.params.id;
+  const  bookingId  = req.params.bookingId;
 
   try {
       

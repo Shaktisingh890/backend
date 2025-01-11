@@ -210,7 +210,7 @@ const uploadIdentification = async (req, res) => {
       for (const [key, files] of Object.entries(req.files)) {
         for (const file of files) {
           const localPath = file.path;
-          console.log(`Uploading image from path: ${localPath}`);
+          // console.log(`Uploading image from path: ${localPath}`);
           const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
             folder: 'identity_images',
             public_id: `customer_${userId}_${Date.now()}`,
@@ -247,7 +247,7 @@ export const getCustomerDetailsShort = async (req, res) => {
 
     const userDetails = await Customer.findOne({ _id: new ObjectId(userId) });
 
-    console.log("++  ",userDetails)
+    // console.log("++  ",userDetails)
     if (!userDetails) {
       return res.status(404).json({
         message: "User not found",
@@ -282,7 +282,7 @@ export const getCustomerIdentification = async (req, res) => {
 
     const customer = await Customer.findOne({ _id: new ObjectId(customerId) });
 
-    console.log("Customer  ",customer)
+    // console.log("Customer  ",customer)
     if (!customer) {
       return res.status(404).json({
         message: "User not found",
@@ -321,9 +321,9 @@ const removeCustomer = async (req, res) => {
           return res.status(404).json({ message: "User not found" });
       }
 
-      console.log("Deleted User:", userResult);
-      console.log("Deleted Customer:", customerResult);
-      console.log(`Deleted ${bookingResult.deletedCount} bookings`);
+      // console.log("Deleted User:", userResult);
+      // console.log("Deleted Customer:", customerResult);
+      // console.log(`Deleted ${bookingResult.deletedCount} bookings`);
 
       res.status(200).json({
           message: "User, customer, and related bookings removed successfully.",

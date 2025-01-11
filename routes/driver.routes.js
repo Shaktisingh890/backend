@@ -20,8 +20,8 @@ router.post(
   ]),
   (req, res, next) => {
     // Log the uploaded files and request body before any error handling
-    console.log("Request body:", req.body);
-    console.log("Uploaded files:", req.files);
+    // console.log("Request body:", req.body);
+    // console.log("Uploaded files:", req.files);
 
     // Check for file validation errors
     if (req.fileValidationError) {
@@ -41,7 +41,7 @@ router.post(
   registerDriver
 );
 
-router.get('/getAllDriver',getAllDrivers)
+router.get('/getAllDriver', authMiddleware, getAllDrivers)
 
 router.delete('/remove', authMiddleware, removeDriver)
 

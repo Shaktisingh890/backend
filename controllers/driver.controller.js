@@ -5,6 +5,7 @@ import { Booking } from '../models/booking.js'
 import { multerUpload } from '../middlewares/multerService.js'
 import cloudinary from '../config/cloudinary.js'
 import { ApiResponse } from '../utils/apiResponse.js'
+import {Car} from '../models/car.js'
 
 
 
@@ -45,12 +46,12 @@ const registerDriver = async (req, res, next) => {
       throw new ApiError(409, "Email or phone number already registered");
     }
 
-    console.log("file is ", req.files);
+    // console.log("file is ", req.files);
 
 
     if (req.files && req.files.licenseFront) {
       const localPath1 = req.files.licenseFront[0].path;
-      console.log("localPath1", localPath1);
+      // console.log("localPath1", localPath1);
 
       const cloudinaryResponse = await cloudinary.uploader.upload(localPath1, {
         folder: 'driver_photos', // Optional: specify a folder in Cloudinary
@@ -187,12 +188,13 @@ const loginDriver = async (req, res, next) => {
 };
 
 const getAllDrivers = async(req,res) => {
+
   try {
-    const drivers = await User.find({ role: 'driver'})
+    const drivers = await Driver.find()
     if (!drivers.length) {
       return res.status(404).json({ message: 'No drivers found' });
     }
-    return res.status(200).json({ drivers });
+    return res.status(201).json(new ApiResponse(200,drivers,'driver found Successfully'));
   } catch (error) {
     console.error('Error fetching drivers:', error);
     return res.status(500).json({ message: 'Internal server error' });
@@ -216,9 +218,9 @@ const removeDriver = async (req, res) => {
           return res.status(404).json({ message: "User not found" });
       }
 
-      console.log("Deleted User : ", userResult);
-      console.log("Deleted Driver : ", driverResult);
-      console.log(`Deleted ${bookingResult.deletedCount} bookings`);
+      // console.log("Deleted User : ", userResult);
+      // console.log("Deleted Driver : ", driverResult);
+      // console.log(`Deleted ${bookingResult.deletedCount} bookings`);
 
       res.status(200).json({
           message: "User, driver, and related bookings removed successfully.",
