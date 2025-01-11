@@ -5,6 +5,7 @@ import { Booking } from '../models/booking.js'
 import { multerUpload } from '../middlewares/multerService.js'
 import cloudinary from '../config/cloudinary.js'
 import { ApiResponse } from '../utils/apiResponse.js'
+import {Car} from '../models/car.js'
 
 
 
@@ -187,12 +188,13 @@ const loginDriver = async (req, res, next) => {
 };
 
 const getAllDrivers = async(req,res) => {
+
   try {
-    const drivers = await User.find({ role: 'driver'})
+    const drivers = await Driver.find()
     if (!drivers.length) {
       return res.status(404).json({ message: 'No drivers found' });
     }
-    return res.status(200).json({ drivers });
+    return res.status(201).json(new ApiResponse(200,drivers,'driver found Successfully'));
   } catch (error) {
     console.error('Error fetching drivers:', error);
     return res.status(500).json({ message: 'Internal server error' });

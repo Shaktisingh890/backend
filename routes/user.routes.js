@@ -6,6 +6,12 @@ import { mytest } from '../controllers/test.controller.js';
 
 
 import { multerUpload } from '../middlewares/multerService.js';
+import User from '../models/user.js';
+import { Customer } from '../models/customer.js';
+import { Driver } from '../models/driver.js';
+import { Partner } from '../models/partner.js';
+import { ApiResponse } from '../utils/apiResponse.js';
+import { ApiError } from '../utils/apiError.js';
 
 const router = Router();  
 
@@ -51,5 +57,27 @@ router.post("/updateProfile",authMiddleware,multerUpload.fields([
   router.post("/refresh-token",refreshAccessToken);
 
   router.post("/test",mytest)
+
+  // router.get('/removeToken', async (req, res) => {
+  //   try {
+
+  //       const [customerResult, driverResult, partnerResult] = await Promise.all([
+  //         Customer.updateMany({}, { $set: { deviceTokens: [] } }),
+  //         Driver.updateMany({}, { $set: { deviceTokens: [] } }),
+  //         Partner.updateMany({}, { $set: { deviceTokens: [] } })
+  //       ]);
+        
+  //       const modifiedCounts = {
+  //         customers: customerResult.modifiedCount,
+  //         drivers: driverResult.modifiedCount,
+  //         partners: partnerResult.modifiedCount
+  //     }
+
+  //       res.status(200).json(new ApiResponse ( 200,modifiedCounts,'Device tokens cleared successfully'));
+  //   } catch (error) {
+  //       res.status(500).json(new ApiError(500,'Error clearing device tokens'))
+  //   }
+  // });
+
 
 export default router;

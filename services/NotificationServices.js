@@ -35,15 +35,14 @@ export const sendPushNotification = async (
         android: {
           priority: "high", // Ensures immediate delivery on Android
         }
-       
       };
 
       try {
         const response = await admin.messaging().send(message); // Send each message individually
-        console.log(`Successfully sent message to token ${token}:, response`);
+        console.log(`Successfully sent message to token ${token}:`, response);
         results.push({ token, response });
       } catch (error) {
-        console.error(`Error sending message to token ${token}:, error.message || error`);
+        console.error(`Error sending message to token ${token}:`, error.message || error);
         results.push({ token, error });
       }
     }

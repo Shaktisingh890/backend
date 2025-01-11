@@ -41,7 +41,7 @@ router.post(
   registerDriver
 );
 
-router.get('/getAllDriver',getAllDrivers)
+router.get('/getAllDriver', authMiddleware, getAllDrivers)
 
 router.delete('/remove', authMiddleware, removeDriver)
 
