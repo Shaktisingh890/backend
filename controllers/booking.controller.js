@@ -7,6 +7,7 @@ import { ObjectId } from "mongodb";
 import { sendPushNotification } from "../services/NotificationServices.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import moment from 'moment';
 
 export const createBooking = async (req, res) => {
   const customerId = req.user.linkedId;
@@ -35,10 +36,8 @@ export const createBooking = async (req, res) => {
     }
 
     
-    const start = new Date(pickUpDateTime);
-    
-    
-    const end = new Date(returnDateTime);
+    const start = moment(pickUpDateTime, 'DD/MM/YYYY HH:mm').toDate();
+    const end = moment(returnDateTime, 'DD/MM/YYYY HH:mm').toDate();
 
     // Check if the car is already booked during the specified time range
     const existingCarBooking = await Booking.findOne({
@@ -79,14 +78,13 @@ export const createBooking = async (req, res) => {
       partnerId,
       pickupLocation: pickUpLocation,
       dropoffLocation: returnLocation,
-      startDate: pickUpDateTime,
-      endDate: returnDateTime,
+      startDate: start,
+      endDate: end,
       totalAmount: totalRent,
       durationInDays: durationInHours, // Ensure this is the correct unit (Days)
       driverStatus: isDriverRequired ? "pending" : "accepted",
     });
 
-    // Save the booking
     const savedBooking = await newBooking.save();
 
     // Use aggregation pipeline to include only brand and model from car data
