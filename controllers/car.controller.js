@@ -95,8 +95,24 @@ export const addCar = async function (req, res, next) {
                                 console.log(`Unhandled field: ${key}`);
                                 break;
                         }
+
+                        // Delete the temporary file
+                        fs.unlink(localPath, (err) => {
+                            if (err) {
+                                console.error(`Error deleting temp file at ${localPath}:`, err.message);
+                                    } else {
+                                console.log(`Deleted temp file at ${localPath}`);
+                            }
+                        });
                     } catch (uploadError) {
                         console.error(`Error uploading ${key}:, uploadError.message`);
+                        fs.unlink(localPath, (err) => {
+                            if (err) {
+                                console.error(`Error deleting temp file at ${localPath} after upload failure:`, err.message);
+                            } else {
+                                console.log(`Deleted temp file at ${localPath} after upload failure`);
+                            }
+                        });
                     }
                 }
             }
