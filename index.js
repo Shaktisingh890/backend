@@ -13,6 +13,7 @@ import driverRouter from './routes/driver.routes.js';
 import partnerRouter from './routes/partner.routes.js';
 import carRouter from './routes/car.routes.js';
 import bookingRouter from './routes/booking.routes.js'
+import notificationRouter from './routes/notification.routes.js'
 
 // Initialize dotenv
 dotenv.config({
@@ -62,6 +63,7 @@ app.use("/api/v1/drivers", driverRouter);
 app.use("/api/v1/partners", partnerRouter);
 app.use("/api/v1/cars", carRouter);
 app.use("/api/v1/booking", bookingRouter);
+app.use("/api/v1/notifications",notificationRouter)
 
 
 // Connect to the database
@@ -135,11 +137,11 @@ function prepareBase64Payload(body) {
   }
 }
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
 export { app };
 
-//  remove add
+//  remove added 
