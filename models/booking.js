@@ -11,7 +11,7 @@ const bookingSchema = new mongoose.Schema({
   durationInDays: { type: Number, required: true }, // Automatically calculated
   totalAmount: { type: Number, required: true },
   paymentStatus: { type: String, enum: ['pending', 'completed', 'refunded'], default: 'pending' },
-  status: { type: String, enum: ['booked', 'ongoing', 'completed', 'cancelled'], default: 'booked' },
+  status: { type: String, enum: ['pending', 'ongoing', 'booked', 'completed', 'cancelled'], default: 'pending' },
 
   penalties: { type: Number, default: 0 }, // Penalties for cancellations or amendments
   partnerStatus: { type: String, enum: ['pending', 'confirmed', 'rejected'], default: 'pending' },
