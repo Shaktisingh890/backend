@@ -85,6 +85,7 @@ export const createBooking = async (req, res) => {
       driverStatus: isDriverRequired ? "pending" : "accepted",
     });
 
+    console.log("New Booking : ",newBooking)
     const savedBooking = await newBooking.save();
 
     // Use aggregation pipeline to include only brand and model from car data
@@ -519,6 +520,8 @@ export const getBookingById = async (req, res) => {
 export const updatePartnerStatus = async (req, res) => {
   const userId = req.user.linkedId;
   const { bookingId, partnerStatus, status } = req.body;
+  console.log("userId : ",userId)
+  console.log("req.body : ",req.body)
 
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(
@@ -530,11 +533,40 @@ export const updatePartnerStatus = async (req, res) => {
       { new: true } 
     );
 
+    console.log("updatedBooking : ",updatedBooking)
     if (!updatedBooking) {
       return res.status(404).json(new ApiError(404,"Booking not found" ));
     }
 
-    res.status(200).json(new ApiResponse(200,data,"Booking updated successfully"));
+    res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    res.status(500).json(new ApiError(500,{}, "Failed to update booking"));
+  }
+};
+
+export const updateDriverStatus = async (req, res) => {
+  const userId = req.user.linkedId;
+  const { bookingId, driverStatus, status } = req.body;
+  console.log("userId : ",userId)
+  console.log("req.body : ",req.body)
+
+  try {
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      {
+        driverStatus,
+        status,
+      },
+      { new: true } 
+    );
+
+    console.log("updatedBooking : ",updatedBooking)
+    if (!updatedBooking) {
+      return res.status(404).json(new ApiError(404,"Booking not found" ));
+    }
+
+    res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
   } catch (error) {
     console.error("Error updating booking:", error);
     res.status(500).json(new ApiError(500,{}, "Failed to update booking"));
