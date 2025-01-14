@@ -127,6 +127,20 @@ const fetchPartnerBookingNotification = async (req, res) => {
     }
 };
 
+const deleteNotification = async (req, res) => {
+    const notifyId = req.params.id;
 
+    try {
+        if(!notifyId){
+            return res.status(400).json(new ApiError(400,"notifyId not found!"));
+        }
+        await Notification.findByIdAndDelete(notifyId);
+        res.status(200).json(new ApiResponse(200, "notification Deleted Successfully"))
 
-export { createNotification ,fetchPartnerBookingNotification,partner_delete_all_notification};
+    } catch (error) {
+        console.log("Error : ",error)
+        res.status(200).json(new ApiError(500, "Internal server Error"))
+    }
+}
+
+export { createNotification ,fetchPartnerBookingNotification,partner_delete_all_notification, deleteNotification};
