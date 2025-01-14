@@ -2,7 +2,7 @@ import {Router} from 'express';
 import {Car} from '../models/car.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js'; 
 import { multerUpload } from '../middlewares/multerService.js';
-import { createBooking,getAllBooking, getBookingByCarId, getBookingByUserId, getBookingByDriverId, deleteBookingById, updateBookingPaymentStatus, getBookingByPartner, getBookingById} from '../controllers/booking.controller.js';
+import { createBooking,getAllBooking, getBookingByCarId, getBookingByUserId, getBookingByDriverId, deleteBookingById, updateBookingPaymentStatus, getBookingByPartner, getBookingById, updatePartnerStatus} from '../controllers/booking.controller.js';
 import { Booking } from '../models/booking.js';
 
 const router = Router();
@@ -16,6 +16,7 @@ router.get("/getBookingBypartner",authMiddleware, getBookingByPartner)
 router.delete("/delete/:driverId", deleteBookingById)
 router.put(`/paymentstatus`,updateBookingPaymentStatus)
 router.get(`/byId/:bookingId`,authMiddleware ,getBookingById)
+router.post('/updatePartnerStatus',authMiddleware,updatePartnerStatus)
 
 
 // router.delete('/deleteAll', async (req, res) => {

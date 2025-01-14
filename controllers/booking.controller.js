@@ -515,3 +515,28 @@ export const getBookingById = async (req, res) => {
       return res.status(500).json(new ApiError(500, {}, "Error fetching booking"));
   }
 };
+
+export const updatePartnerStatus = async (req, res) => {
+  const userId = req.user.linkedId;
+  const { bookingId, partnerStatus, status } = req.body;
+
+  try {
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      {
+        partnerStatus,
+        status,
+      },
+      { new: true } 
+    );
+
+    if (!updatedBooking) {
+      return res.status(404).json(new ApiError(404,"Booking not found" ));
+    }
+
+    res.status(200).json(new ApiResponse(200,data,"Booking updated successfully"));
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    res.status(500).json(new ApiError(500,{}, "Failed to update booking"));
+  }
+};
