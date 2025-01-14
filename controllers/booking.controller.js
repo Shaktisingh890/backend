@@ -331,7 +331,7 @@ export const getBookingByCarId = async (req, res) => {
 };
 
 export const getBookingByUserId = async (req, res) => {
-  const userId = req.user;
+  const userId = req.user.linkedId;
 
   try {
     if (!userId || !ObjectId.isValid(userId)) {
@@ -342,7 +342,7 @@ export const getBookingByUserId = async (req, res) => {
     }
     const bookings = await Booking.find({
       customerId: new ObjectId(userId),
-    }).populate("carId");
+    }).populate("carId").populate("driverId");
     if (bookings.length === 0) {
       return res.status(404).json({
         success: false,
@@ -554,7 +554,7 @@ export const updateDriverStatus = async (req, res) => {
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      {
+      { 
         driverStatus,
         status,
       },
