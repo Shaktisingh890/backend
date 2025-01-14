@@ -41,6 +41,17 @@ const registerUser = async (req, res) => {
 
   try {
     // If a file (photo) is uploaded, handle Cloudinary upload
+
+    const deleteAllTempFiles = (files) => {
+      Object.values(files).forEach(fileArray => {
+        fileArray.forEach(file => {
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+          });
+        });
+      });
+    };
+
     let photoUrl = null;
     if (req.files && req.files.photo) {
       const photo = req.files.photo;
@@ -57,7 +68,7 @@ const registerUser = async (req, res) => {
 
       // Get the URL of the uploaded photo
       photoUrl = cloudinaryResponse.secure_url;
-
+      deleteAllTempFiles(req.files)
       console.log("Photo uploaded successfully:", photoUrl);
     }
 
