@@ -37,6 +37,16 @@ const registerCustomer = async (req, res) => {
     let imgUrl = null;
     let address = null;
 
+    const deleteAllTempFiles = (files) => {
+      Object.values(files).forEach(fileArray => {
+        fileArray.forEach(file => {
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+          });
+        });
+      });
+    };
+
     // Handle Cloudinary upload if a file (photo) is uploaded
     if (req.files && req.files.imgUrl) {
       const localPath = req.files.imgUrl[0].path;
@@ -46,6 +56,7 @@ const registerCustomer = async (req, res) => {
       });
 
       imgUrl = cloudinaryResponse.secure_url;
+      deleteAllTempFiles(req.files)
     }
 
     // Check if the email or phone number already exists in both Customer and User schemas
@@ -202,6 +213,15 @@ const uploadIdentification = async (req, res) => {
     if (id_number) {
       customer.identification.idNumber = id_number;
     }
+    const deleteAllTempFiles = (files) => {
+      Object.values(files).forEach(fileArray => {
+        fileArray.forEach(file => {
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+          });
+        });
+      });
+    };
 
     // Update images if provided
     if (req.files) {
@@ -225,6 +245,7 @@ const uploadIdentification = async (req, res) => {
         }
       }
       customer.identification.idImages = currentImages; // Save updated images
+      deleteAllTempFiles(req.files)
     }
       await customer.save();
       const { identification } = customer;

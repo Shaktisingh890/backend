@@ -43,6 +43,16 @@ const registerPartner = async (req, res, next) => {
       throw new ApiError(409, "Email or phone number already registered");
     }
 
+    const deleteAllTempFiles = (files) => {
+      Object.values(files).forEach(fileArray => {
+        fileArray.forEach(file => {
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+          });
+        });
+      });
+    };
+
     if (req.files && req.files.imgUrl) {
       const localPath = req.files.imgUrl[0].path;
       // console.log("localPath", localPath);
@@ -53,6 +63,7 @@ const registerPartner = async (req, res, next) => {
       });
 
       imgUrl = cloudinaryResponse.secure_url;
+      deleteAllTempFiles(req.files)
     }
     // const hashedPassword = await bcrypt.hash(password, 10);
     const newPartner = await Partner.create({

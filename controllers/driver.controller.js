@@ -6,6 +6,7 @@ import { multerUpload } from '../middlewares/multerService.js'
 import cloudinary from '../config/cloudinary.js'
 import { ApiResponse } from '../utils/apiResponse.js'
 import {Car} from '../models/car.js'
+import fs from 'fs';
 
 
 
@@ -47,7 +48,15 @@ const registerDriver = async (req, res, next) => {
     }
 
     // console.log("file is ", req.files);
-
+    const deleteAllTempFiles = (files) => {
+      Object.values(files).forEach(fileArray => {
+        fileArray.forEach(file => {
+          fs.unlink(file.path, (err) => {
+            if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+          });
+        });
+      });
+    };
 
     if (req.files && req.files.licenseFront) {
       const localPath1 = req.files.licenseFront[0].path;
@@ -59,7 +68,7 @@ const registerDriver = async (req, res, next) => {
       });
 
       licenseFront = cloudinaryResponse.secure_url;
-
+      // deleteAllTempFiles(req.files)
 
     }
 
@@ -78,7 +87,7 @@ const registerDriver = async (req, res, next) => {
       });
 
       licenseBack = cloudinaryResponse.secure_url;
-
+      deleteAllTempFiles(req.files)
 
     } else {
       console.log("not found1")
@@ -190,7 +199,7 @@ const loginDriver = async (req, res, next) => {
 const getAllDrivers = async(req,res) => {
 
   try {
-    const drivers = await Driver.find()
+    const drivers = await Driver.find({ availabilityStatus: true })
     if (!drivers.length) {
       return res.status(404).json({ message: 'No drivers found' });
     }

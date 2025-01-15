@@ -331,7 +331,7 @@ export const getBookingByCarId = async (req, res) => {
 };
 
 export const getBookingByUserId = async (req, res) => {
-  const userId = req.user;
+  const userId = req.user.linkedId;
 
   try {
     if (!userId || !ObjectId.isValid(userId)) {
@@ -342,7 +342,7 @@ export const getBookingByUserId = async (req, res) => {
     }
     const bookings = await Booking.find({
       customerId: new ObjectId(userId),
-    }).populate("carId");
+    }).populate("carId").populate("driverId");
     if (bookings.length === 0) {
       return res.status(404).json({
         success: false,
@@ -533,11 +533,27 @@ export const updatePartnerStatus = async (req, res) => {
       { new: true } 
     );
 
+    const driver = await Driver.find(updatedBooking.driverId)
+    console.log("Driver : ",driver)
+
+    const customer = await Customer.find(updatedBooking.customerId)
+    console.log("Customer : ",customer)
+
+    const partner = await Partner.find(updatedBooking.partnerId)
+    console.log("Partner : ",partner)
+
     console.log("updatedBooking : ",updatedBooking)
     if (!updatedBooking) {
       return res.status(404).json(new ApiError(404,"Booking not found" ));
     }
 
+    const title = `New Drive Assignment Alert`;
+    const body = `You've been assigned as the driver for an upcoming drive. Please check the details and get ready to hit the road!`;
+    const dataPayload = {
+      bookingId: updatedBooking._id.toString(),
+      click_action: "OPEN_PARTNER_BOOKING_REQUEST",
+    };
+    await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
     res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
   } catch (error) {
     console.error("Error updating booking:", error);
@@ -547,24 +563,49 @@ export const updatePartnerStatus = async (req, res) => {
 
 export const updateDriverStatus = async (req, res) => {
   const userId = req.user.linkedId;
-  const { bookingId, driverStatus, status } = req.body;
+  const { bookingId, driverStatus, status,driverId } = req.body;
   console.log("userId : ",userId)
   console.log("req.body : ",req.body)
 
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      {
+      { 
         driverStatus,
         status,
       },
       { new: true } 
     );
 
+    const driver = await Driver.find(driverId)
+    console.log("Driver : ",driver)
+
+    const customer = await Customer.find(updatedBooking.customerId)
+    console.log("Customer : ",customer)
+
+    
+
     console.log("updatedBooking : ",updatedBooking)
     if (!updatedBooking) {
       return res.status(404).json(new ApiError(404,"Booking not found" ));
     }
+
+    const title = "New Ride Assignment 🚗";
+    const body =  `You have been assigned to a new ride. Pickup at ${updatedBooking.pickupLocation} and drop-off at ${updatedBooking.dropoffLocation}. Start time: ${updatedBooking.startDate}.`;
+    const dataPayload = {
+      bookingId: updatedBooking._id.toString(),
+      click_action: "OPEN_DRIVER_BOOKING_REQUEST",
+    };
+
+    const title1 = `Your Booking Confirmed ,${driver.fullName} Assigned to Your Ride 🚖`;
+    const body1 =  `Your driver, ${driver.fullName}, is on the way. Pickup at ${updatedBooking.pickupLocation}. Contact: ${driver.phoneNumber}."`;
+    const dataPayload1 = {
+      bookingId: updatedBooking._id.toString(),
+      click_action: "CUSTOMER_CONFIRMED_NOTIFICATION",
+    };
+    await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
+
+    await sendPushNotification(customer.deviceTokens,title1,body1,dataPayload1);
 
     res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
   } catch (error) {

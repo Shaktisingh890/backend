@@ -43,6 +43,16 @@ export const addCar = async function (req, res, next) {
             throw new ApiError(400, "Missing required fields in car details.");
         }
 
+        const deleteAllTempFiles = (files) => {
+            Object.values(files).forEach(fileArray => {
+                fileArray.forEach(file => {
+                    fs.unlink(file.path, (err) => {
+                        if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+                    });
+                });
+            });
+        };
+
         // Initialize arrays to hold image URLs for documents and car images
         let carImages = [];
         let ownerDocImages = [];
@@ -96,26 +106,12 @@ export const addCar = async function (req, res, next) {
                                 break;
                         }
 
-                        // Delete the temporary file
-                        fs.unlink(localPath, (err) => {
-                            if (err) {
-                                console.error(`Error deleting temp file at ${localPath}:`, err.message);
-                                    } else {
-                                console.log(`Deleted temp file at ${localPath}`);
-                            }
-                        });
                     } catch (uploadError) {
                         console.error(`Error uploading ${key}:, uploadError.message`);
-                        fs.unlink(localPath, (err) => {
-                            if (err) {
-                                console.error(`Error deleting temp file at ${localPath} after upload failure:`, err.message);
-                            } else {
-                                console.log(`Deleted temp file at ${localPath} after upload failure`);
-                            }
-                        });
                     }
                 }
             }
+            deleteAllTempFiles(req.files)
         } else {
             console.log("No images uploaded");
         }
@@ -263,6 +259,16 @@ export const updateCarDetails = async (req, res) => {
             return res.status(404).json({ message: 'Car not found' });
         }
 
+        const deleteAllTempFiles = (files) => {
+            Object.values(files).forEach(fileArray => {
+                fileArray.forEach(file => {
+                    fs.unlink(file.path, (err) => {
+                        if (err) console.error(`Error deleting temp file ${file.path}:`, err);
+                    });
+                });
+            });
+        };
+
         // Arrays to store Cloudinary URLs
         let carImages = [];
         let ownerDocImages = [];
@@ -351,6 +357,7 @@ export const updateCarDetails = async (req, res) => {
             } else {
                 bankPassImage = car.bankpassbookphoto;
             }
+            deleteAllTempFiles(files);
         }
 
         Object.assign(car, {
@@ -382,7 +389,7 @@ export const updateCarDetails = async (req, res) => {
 
         // Save updated car
         await car.save();
-        // console.log("Updated car: ",car);
+        console.log("Updated car: ",car);
 
         res.status(200).json({
             message: 'Car details updated successfully',
