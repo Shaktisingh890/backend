@@ -6,6 +6,7 @@ import { multerUpload } from '../middlewares/multerService.js'
 import cloudinary from '../config/cloudinary.js'
 import { ApiResponse } from '../utils/apiResponse.js'
 import {Car} from '../models/car.js'
+import fs from 'fs';
 
 
 
@@ -67,7 +68,7 @@ const registerDriver = async (req, res, next) => {
       });
 
       licenseFront = cloudinaryResponse.secure_url;
-      deleteAllTempFiles(req.files)
+      // deleteAllTempFiles(req.files)
 
     }
 
@@ -198,7 +199,7 @@ const loginDriver = async (req, res, next) => {
 const getAllDrivers = async(req,res) => {
 
   try {
-    const drivers = await Driver.find()
+    const drivers = await Driver.find({ availabilityStatus: true })
     if (!drivers.length) {
       return res.status(404).json({ message: 'No drivers found' });
     }
