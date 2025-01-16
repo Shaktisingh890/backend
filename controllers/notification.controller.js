@@ -5,6 +5,42 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ObjectId } from "mongodb";
 
 
+export const newNotification = async (receiverId, title, body, isRead = false, type, bookingId) => {
+    // Validate inputs
+    if (!receiverId || !title || !body || !type ||!bookingId) {
+        console.log(receiverId)
+        console.log(title)
+        console.log(body)
+        console.log(bookingId)
+        throw new Error("All fields (senderId, title, body, type) are required.");
+    }
+
+    try {
+        // Create a new notification
+        const notification = new Notification({
+            receiverId,
+            title,
+            body,
+            isRead,
+            type,
+            bookingId,
+            createdAt: new Date(),
+        });
+
+        console.log("NewNotification : ",notification)
+        // Save the notification to the database
+        const savedNotification = await notification.save();
+        console.log("Notification Saved : ",savedNotification)
+        // Return the saved notification
+        return savedNotification;
+    } catch (error) {
+        console.error("Error creating notification:", error);
+        throw new Error("An error occurred while creating the notification.");
+    }
+};
+
+
+
 const createNotification = async (req, res) => {
     // Extract request data
     const { title, body, bookingId,isRead } = req.body;
@@ -72,10 +108,10 @@ const fetchPartnerBookingNotification = async (req, res) => {
 
     try {
         // Fetch notifications for the given partnerId
-        const notifications = await Notification.find({ receiverId });
+        const notifications = await Notification.find({receiverId});
             // Sort by most recent notifications
         
-        console.log("mynotification :",notifications);
+        console.log("mynotification vhv :",notifications);
         if (!notifications.length) {
             return res.status(404).json(
                 new ApiError(404,"No notifications found for the provided partnerId")

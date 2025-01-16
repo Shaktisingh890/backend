@@ -8,9 +8,12 @@ import { sendPushNotification } from "../services/NotificationServices.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import moment from 'moment';
+import { newNotification } from "./notification.controller.js";
 
 export const createBooking = async (req, res) => {
   const customerId = req.user.linkedId;
+  const role = req.user.role;
+
   const {
     carId,
     isDriverRequired,
@@ -129,13 +132,20 @@ export const createBooking = async (req, res) => {
         .status(500)
         .json({ error: "Failed to retrieve booking data with car details" });
     }
+
+    const title1 = 'New Booking Alert'
+    const body1 = `Hi ${partner.fullName}, A customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`
+    const type = "partner"
+    const bookingId = savedBooking._id
+    await newNotification(partnerId, title1, body1, false, type, bookingId);
+
     const title = `New Car Booking Alert`;
     const body = `Hello ${partner.fullName}, a customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`;
     const dataPayload = {
       bookingId: savedBooking._id.toString(),
       click_action: "OPEN_PARTNER_BOOKING_REQUEST",
     };
-    await sendPushNotification(partner.deviceTokens, title, body,dataPayload);
+    // await sendPushNotification(partner.deviceTokens, title, body,dataPayload);
 
     res
       .status(201)
@@ -533,16 +543,12 @@ export const updatePartnerStatus = async (req, res) => {
       { new: true } 
     );
 
-    const driver = await Driver.find(updatedBooking.driverId)
-    console.log("Driver : ",driver)
+    const customer = await Customer.findById(updatedBooking.customerId)
+    // console.log("Customer : ",customer)
 
-    const customer = await Customer.find(updatedBooking.customerId)
-    console.log("Customer : ",customer)
+    const partner = await Partner.findById(updatedBooking.partnerId)
+    // console.log("Partner : ",partner)
 
-    const partner = await Partner.find(updatedBooking.partnerId)
-    console.log("Partner : ",partner)
-
-    console.log("updatedBooking : ",updatedBooking)
     if (!updatedBooking) {
       return res.status(404).json(new ApiError(404,"Booking not found" ));
     }
@@ -553,7 +559,7 @@ export const updatePartnerStatus = async (req, res) => {
       bookingId: updatedBooking._id.toString(),
       click_action: "OPEN_PARTNER_BOOKING_REQUEST",
     };
-    await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
+    // await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
     res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
   } catch (error) {
     console.error("Error updating booking:", error);
@@ -577,11 +583,12 @@ export const updateDriverStatus = async (req, res) => {
       { new: true } 
     );
 
-    const driver = await Driver.find(driverId)
-    console.log("Driver : ",driver)
+    const driver = await Driver.findById(driverId)
+    console.log("Driver ID: ", driver);
 
-    const customer = await Customer.find(updatedBooking.customerId)
-    console.log("Customer : ",customer)
+    const customer = await Customer.findById(updatedBooking.customerId)
+    console.log("Customer ID: ", customer);
+
 
     
 
@@ -603,6 +610,10 @@ export const updateDriverStatus = async (req, res) => {
       bookingId: updatedBooking._id.toString(),
       click_action: "CUSTOMER_CONFIRMED_NOTIFICATION",
     };
+
+    await newNotification(driverId, title, body, false, 'driver', bookingId);
+    await newNotification(updatedBooking.customerId, title1, body1, false, 'customer', bookingId);
+
     await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
 
     await sendPushNotification(customer.deviceTokens,title1,body1,dataPayload1);
