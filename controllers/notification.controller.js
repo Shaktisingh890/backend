@@ -5,10 +5,11 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ObjectId } from "mongodb";
 
 
-export const newNotification = async (receiverId, title, body, isRead = false, type, bookingId) => {
+export const newNotification = async (receiverId, senderId, title, body, isRead = false, type, bookingId) => {
     // Validate inputs
-    if (!receiverId || !title || !body || !type ||!bookingId) {
+    if (!receiverId || !senderId || !title || !body || !type ||!bookingId) {
         console.log(receiverId)
+        console.log(senderId)
         console.log(title)
         console.log(body)
         console.log(bookingId)
@@ -19,6 +20,7 @@ export const newNotification = async (receiverId, title, body, isRead = false, t
         // Create a new notification
         const notification = new Notification({
             receiverId,
+            senderId,
             title,
             body,
             isRead,
