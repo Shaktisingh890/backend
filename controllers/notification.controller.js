@@ -3,6 +3,7 @@ import Notification from "../models/notification.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ObjectId } from "mongodb";
+import { Partner } from '../models/partner.js';
 
 
 export const newNotification = async (receiverId, senderId, title, body, isRead = false, type, bookingId) => {
