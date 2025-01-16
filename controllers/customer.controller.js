@@ -8,6 +8,7 @@ import { cursorTo } from "readline";
 import User from "../models/user.js";
 import { ObjectId } from "mongodb";
 import { Booking } from "../models/booking.js";
+import Notification from "../models/notification.js";
 
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -355,4 +356,48 @@ const removeCustomer = async (req, res) => {
   }
 };
 
-export { registerCustomer, loginCustomer, uploadIdentification, removeCustomer }
+const getCustomerNotifications = async(req, res) => {
+  const customerId = req.user.linkedId;
+
+  try {
+     const allNotify = await Notification.find({receiverId : customerId});
+     res.status(200).json(new ApiResponse(200,allNotify,"All notification fetched!"))
+  } catch (error) {
+    console.log("Error : ",error)
+    res.status(500).json(new ApiError(500,{},"error fetching notification"))
+  }
+}
+
+const deleteOneNotification = async(req,res) => {
+  const notifyId = req.params.id;
+
+  try {
+    if(!notifyId){
+      return res.status(400).json({message : "invalid notification"})
+    }
+    await Notification.findByIdAndDelete(notifyId)
+    console.log("notification deleted successfully")
+    return res.status(200).json(new ApiResponse(200,"Notification deleted Successfully"))
+  } catch (error) {
+    console.log("Eroor : ",error)
+    return res.status(500).json(new ApiResponse(500,"internal server Error"))
+  }
+}
+
+const deleteAllNotification = async(req,res) => {
+  const receiverId  = req.user.linkedId;
+    console.log("received Id",receiverId);
+    if (!receiverId) {
+        return res.status(400).json(new ApiError(400,"partnerId is required"));
+    }
+    try {
+        const notifications = await Notification.deleteMany({receiverId});
+        console.log("Notifications deleted successfully")
+        res.status(200).json(new ApiResponse(201,{},"Notifications deleted successfully"));
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+        res.status(500).json(new ApiError(500,error));
+    }
+}
+
+export { registerCustomer, loginCustomer, uploadIdentification, removeCustomer, getCustomerNotifications, deleteOneNotification , deleteAllNotification}
