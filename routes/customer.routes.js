@@ -1,5 +1,5 @@
 import Router from 'express';
-import { registerCustomer,loginCustomer, uploadIdentification, getCustomerDetailsShort, getCustomerIdentification, removeCustomer } from '../controllers/customer.controller.js';
+import { registerCustomer,loginCustomer, uploadIdentification, getCustomerDetailsShort, getCustomerIdentification, removeCustomer, getCustomerNotifications, deleteOneNotification, deleteAllNotification } from '../controllers/customer.controller.js';
 import { multerUpload } from '../middlewares/multerService.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js'; 
 
@@ -24,5 +24,12 @@ router.get('/shortData',authMiddleware,getCustomerDetailsShort)
 router.get('/identification',authMiddleware,getCustomerIdentification)
 
 router.delete('/remove', authMiddleware, removeCustomer)
+
+router.get('/getAllnotification',authMiddleware,getCustomerNotifications)
+
+router.get('/deleteOneNotification/:id',authMiddleware, deleteOneNotification)
+
+router.get('/deleteAllNotification',authMiddleware, deleteAllNotification)
+
 
 export default router;

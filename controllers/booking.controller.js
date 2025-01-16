@@ -145,7 +145,7 @@ export const createBooking = async (req, res) => {
       bookingId: savedBooking._id.toString(),
       click_action: "OPEN_PARTNER_BOOKING_REQUEST",
     };
-    // await sendPushNotification(partner.deviceTokens, title, body,dataPayload);
+    await sendPushNotification(partner.deviceTokens, title, body,dataPayload);
 
     res
       .status(201)
