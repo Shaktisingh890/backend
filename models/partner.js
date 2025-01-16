@@ -24,7 +24,7 @@ const partnerSchema = new Schema({
     termsAccepted: { type: Boolean, default: false },
     deviceTokens: [String],
     
-  });
+  },{ timestamps: true});
   
 
 partnerSchema.pre("save", async function(next){

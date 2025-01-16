@@ -8,7 +8,7 @@ const NotificationSchema = new Schema({
     bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking', required: false }, // Associated booking ID
     type: { type: String, required: true },                  // Type of the notification (e.g., "booking", "alert", etc.)
     isRead: { type: Boolean, default: false }                // Status whether the notification is read or not
-});
+},{ timestamps:true});
 
 // Create and export the Notification model
 const Notification = mongoose.model('Notification', NotificationSchema);
