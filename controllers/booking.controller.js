@@ -137,7 +137,7 @@ export const createBooking = async (req, res) => {
     const body1 = `Hi ${partner.fullName}, A customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`
     const type = "partner"
     const bookingId = savedBooking._id
-    await newNotification(partnerId, title1, body1, false, type, bookingId);
+    await newNotification(partnerId, customerId, title1, body1, false, type, bookingId);
 
     const title = `New Car Booking Alert`;
     const body = `Hello ${partner.fullName}, a customer has successfully booked your car ${car.brand} ${car.model}. Please check the booking details.`;
@@ -611,8 +611,8 @@ export const updateDriverStatus = async (req, res) => {
       click_action: "CUSTOMER_CONFIRMED_NOTIFICATION",
     };
 
-    await newNotification(driverId, title, body, false, 'driver', bookingId);
-    await newNotification(updatedBooking.customerId, title1, body1, false, 'customer', bookingId);
+    await newNotification(driverId, userId, title, body, false, 'driver', bookingId);
+    await newNotification(updatedBooking.customerId, userId, title1, body1, false, 'customer', bookingId);
 
     await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
 
