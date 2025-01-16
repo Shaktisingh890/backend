@@ -248,7 +248,7 @@ const updateDriverStatus = async(req,res) => {
      if(!driverId){
       return res.status(400).json(new ApiError(400,'invalid driver'))
      }
-     const updateDriver = await Driver.findByIdAndUpdate(driverId,{availability},{ new: true, runValidators: true })
+     const updateDriver = await Driver.findByIdAndUpdate(driverId,{availabilityStatus:availability},{ new: true, runValidators: true })
      console.log("UpdateDriver : ",updateDriver)
      res.status(200).json(new ApiResponse(200,updateDriver,"driver status updated!"))
   } catch (error) {
@@ -257,4 +257,21 @@ const updateDriverStatus = async(req,res) => {
   }
 }
 
-export { registerDriver, loginDriver, getAllDrivers, removeDriver, updateDriverStatus }
+const getDriverStatus = async(req,res) => {
+  const driverId = req.user.linkedId;
+
+  try {
+     if(!driverId){
+      return res.status(400).json(new ApiError(400,'invalid driver'))
+     }
+     const driver = await Driver.findById(driverId)
+     console.log("Driver : ",driver)
+     const available = driver.availabilityStatus;
+     res.status(200).json(new ApiResponse(200,available,"driver status updated!"))
+  } catch (error) {
+    console.log("driver nor available! : ",error)
+    res.status(500).json(new ApiError(500,{},"internal Server Error"))
+  }
+}
+
+export { registerDriver, loginDriver, getAllDrivers, removeDriver, updateDriverStatus, getDriverStatus }

@@ -3,7 +3,7 @@ import Router from "express";
 const router = Router();
 
 import { multerUpload } from "../middlewares/multerService.js";
-import { registerDriver, loginDriver, getAllDrivers, removeDriver, updateDriverStatus } from "../controllers/driver.controller.js";
+import { registerDriver, loginDriver, getAllDrivers, removeDriver, updateDriverStatus, getDriverStatus } from "../controllers/driver.controller.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 router.post(
@@ -46,6 +46,8 @@ router.get('/getAllDriver', authMiddleware, getAllDrivers)
 router.delete('/remove', authMiddleware, removeDriver)
 
 router.put('/updateStatus', authMiddleware, updateDriverStatus)
+
+router.get('/getAvailability', authMiddleware, getDriverStatus)
 
 
 export default router;
