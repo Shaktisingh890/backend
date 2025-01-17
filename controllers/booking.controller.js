@@ -9,6 +9,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import moment from 'moment';
 import { newNotification } from "./notification.controller.js";
+import mongoose from "mongoose";
 
 export const createBooking = async (req, res) => {
   const customerId = req.user.linkedId;
@@ -492,38 +493,74 @@ export const deleteBookingById = async (req, res) => {
 };
 
 export const getBookingById = async (req, res) => {
-  const  bookingId  = req.params.bookingId;
+  const { bookingId } = req.params;
 
   try {
-      
-      if (!bookingId) {
-          return res.status(400).json(new ApiError( 400, {}, "Booking ID is required" ));
-      }
+    if (!bookingId) {
+      return res.status(400).json(new ApiError(400, {}, "Booking ID is required"));
+    }
 
-      const booking = await Booking.findById(bookingId);
+    // Use aggregation to join Booking, Car, and Customer collections
+    const booking = await Booking.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(bookingId) } }, // Match the booking by ID
+      {
+        $lookup: {
+          from: "cars", // Car collection
+          localField: "carId",
+          foreignField: "_id",
+          as: "carDetails",
+        },
+      },
+      {
+        $lookup: {
+          from: "customers", // Customer collection
+          localField: "customerId",
+          foreignField: "_id",
+          as: "customerDetails",
+        },
+      },
+      {
+        $unwind: "$carDetails", // Unwind to get single car object
+      },
+      {
+        $unwind: "$customerDetails", // Unwind to get single customer object
+      },
+      {
+        $project: {
+          _id: 1,
+          startDate: 1,
+          endDate: 1,
+          totalAmount: 1,
+          pickupLocation: 1,
+          dropoffLocation: 1,
+          durationInDays: 1,
+          paymentStatus: 1,
+          penalties: 1,
+          partnerStatus: 1,
+          driverStatus: 1,
+          status: 1,
+          partnerId: 1,
+          driverId: 1,
+          carId: 1,
+          customerId: 1,
+          carModel: "$carDetails.model",
+          carName: "$carDetails.brand",
+          pricePerDay: "$carDetails.pricePerDay",
+          cName: "$customerDetails.fullName",
+          cPhone: "$customerDetails.phoneNumber",
+          cImage: "$customerDetails.imgUrl",
+        },
+      },
+    ]);
 
-      if (!booking) {
-          return res.status(404).json({ message: "Booking not found" });
-      }
+    if (!booking.length) {
+      return res.status(404).json(new ApiError(404, {}, "Booking not found"));
+    }
 
-      
-      const car = await Car.findById(booking.carId)
-
-      if (!car) {
-        return res.status(404).json({ message: "car not found" });
-      }
-
-      const data = {
-        ...booking.toObject(),
-        carModel :car.model,
-        carName: car.brand,
-        pricePerDay:car.pricePerDay,
-    };
-      return res.status(200).json(new ApiResponse(200, data, "Booking fetched successfully"));
-      
+    return res.status(200).json(new ApiResponse(200, booking[0], "Booking fetched successfully"));
   } catch (error) {
-      console.error("Error fetching booking:", error);
-      return res.status(500).json(new ApiError(500, {}, "Error fetching booking"));
+    console.error("Error fetching booking:", error);
+    return res.status(500).json(new ApiError(500, {}, "Error fetching booking"));
   }
 };
 
