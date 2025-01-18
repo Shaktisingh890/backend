@@ -1,22 +1,41 @@
 import admin from 'firebase-admin';
-import serviceAccounts from './firebase-service-account.json' with { type: 'json' };
 import fs from 'fs';
 import path from 'path';
 
+// Initialize the serviceAccount variable
 let serviceAccount;
 
-if (process.env.NODE_ENV === 'production') {
-  // In production, load from Render's secret file or environment variable
-  const serviceAccount = '/etc/secrets/firebase-service-account.json';
-
-} else {
-  // In development, import the local JSON file using assert { type: 'json' }
-  serviceAccount = serviceAccounts;
+async function loadServiceAccount() {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, load from the file path where Render stores the service account JSON
+    try {
+      const filePath = path.resolve('/etc/secrets/firebase-service-account.json'); // Set the correct path
+      const fileData = fs.readFileSync(filePath, 'utf8');
+      serviceAccount = JSON.parse(fileData);
+    } catch (error) {
+      console.error('Failed to load the service account:', error);
+    }
+  } else {
+    // In development, use a local JSON file as fallback
+    try {
+      const filePath = path.resolve('./config/firebase-service-account.json');
+      const fileData = fs.readFileSync(filePath, 'utf8');
+      serviceAccount = JSON.parse(fileData);
+    } catch (error) {
+      console.error('Failed to load the service account:', error);
+    }
+  }
 }
 
-// Initialize Firebase Admin SDK
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+// Load service account and initialize Firebase Admin
+loadServiceAccount().then(() => {
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } else {
+    console.error('Service account not loaded.');
+  }
 });
 
 export default admin;
