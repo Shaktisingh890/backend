@@ -266,8 +266,8 @@ const getDriverStatus = async(req,res) => {
      }
      const driver = await Driver.findById(driverId)
      console.log("Driver : ",driver)
-     const available = driver.availabilityStatus;
-     res.status(200).json(new ApiResponse(200,available,"driver current Status!"))
+     const availability = driver.availabilityStatus;
+     res.status(200).json({availability,message : "fetched successfully!"})
   } catch (error) {
     console.log("driver nor available! : ",error)
     res.status(500).json(new ApiError(500,{},"internal Server Error"))
