@@ -39,7 +39,7 @@ export const createBooking = async (req, res) => {
       return res.status(404).json({ error: "Partner not found" });
     }
 
-    
+
     const start = moment(pickUpDateTime, 'DD/MM/YYYY HH:mm').toDate();
     const end = moment(returnDateTime, 'DD/MM/YYYY HH:mm').toDate();
 
@@ -89,7 +89,7 @@ export const createBooking = async (req, res) => {
       driverStatus: isDriverRequired ? "pending" : "accepted",
     });
 
-    console.log("New Booking : ",newBooking)
+    console.log("New Booking : ", newBooking)
     const savedBooking = await newBooking.save();
 
     // Use aggregation pipeline to include only brand and model from car data
@@ -146,7 +146,7 @@ export const createBooking = async (req, res) => {
       bookingId: savedBooking._id.toString(),
       click_action: "OPEN_PARTNER_BOOKING_REQUEST",
     };
-    await sendPushNotification(partner.deviceTokens, title, body,dataPayload);
+    await sendPushNotification(partner.deviceTokens, title, body, dataPayload);
 
     res
       .status(201)
@@ -194,7 +194,7 @@ export const getBookingByPartner = async (req, res) => {
 
     console.log("booking : ", bookings);
   } catch (error) {
-    console.log("Error : ",error)
+    console.log("Error : ", error)
   }
 };
 
@@ -351,16 +351,30 @@ export const getBookingByUserId = async (req, res) => {
         message: "Invalid or missing UserId",
       });
     }
-    const bookings = await Booking.find({
+    const booking = await Booking.find({
       customerId: new ObjectId(userId),
     }).populate("carId").populate("driverId");
-    if (bookings.length === 0) {
+    if (booking.length === 0) {
       return res.status(404).json({
         success: false,
         message: " No Booking found! ",
       });
     }
 
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month}-${day.toString().padStart(2, '0')}-${year}`;
+    };
+    // Modify date format in each booking
+    const bookings = booking.map((booking) => ({
+      ...booking._doc, // Ensure you include the original data from the document
+      startDate: formatDate(booking.startDate),
+      endDate: formatDate(booking.endDate),
+    }));
     // console.log("Bookings : ", bookings);
     res.status(200).json({
       success: true,
@@ -414,14 +428,31 @@ export const getBookingByDriverId = async (req, res) => {
 
 export const getAllBooking = async (req, res) => {
   try {
-    const bookings = await Booking.find();
-    // console.log("Data : ", bookings);
+    const formattedBookings = await Booking.find();
+
+    // Helper function to format date
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month}-${day.toString().padStart(2, '0')}-${year}`;
+    };
+
+    // Modify date format in each booking
+    const bookings = formattedBookings.map((booking) => ({
+      ...booking._doc, // Ensure you include the original data from the document
+      startDate: formatDate(booking.startDate),
+      endDate: formatDate(booking.endDate),
+    }));
+
     return res.status(200).json({
-      message: "Booking fetchewd",
+      message: "Bookings fetched",
       data: bookings,
     });
   } catch (error) {
-    return res.status(404).json({ message: " data not found" });
+    return res.status(404).json({ message: "Data not found" });
   }
 };
 
@@ -501,7 +532,7 @@ export const getBookingById = async (req, res) => {
     }
 
     // Use aggregation to join Booking, Car, and Customer collections
-    const booking = await Booking.aggregate([
+    const bookingData = await Booking.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(bookingId) } }, // Match the booking by ID
       {
         $lookup: {
@@ -520,10 +551,21 @@ export const getBookingById = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "partners",
+          localField: "partnerId",
+          foreignField: "_id",
+          as: "partnerDetails"
+        }
+      },
+      {
         $unwind: "$carDetails", // Unwind to get single car object
       },
       {
         $unwind: "$customerDetails", // Unwind to get single customer object
+      },
+      {
+        $unwind: "$partnerDetails",
       },
       {
         $project: {
@@ -545,19 +587,42 @@ export const getBookingById = async (req, res) => {
           customerId: 1,
           carModel: "$carDetails.model",
           carName: "$carDetails.brand",
+          RegistrationNumber: "$carDetails.registrationNumber",
           pricePerDay: "$carDetails.pricePerDay",
+          carPickupLocation: "$carDetails.pickupLocation",
+          carDropoffLocation: "$carDetails.dropoffLocation",
           cName: "$customerDetails.fullName",
           cPhone: "$customerDetails.phoneNumber",
           cImage: "$customerDetails.imgUrl",
+          partnerName: "$partnerDetails.fullName",
+          partnerPhone: "$partnerDetails.phoneNumber",
         },
       },
     ]);
 
-    if (!booking.length) {
+    if (!bookingData.length) {
       return res.status(404).json(new ApiError(404, {}, "Booking not found"));
     }
 
-    return res.status(200).json(new ApiResponse(200, booking[0], "Booking fetched successfully"));
+    // Format the date fields
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month}-${day.toString().padStart(2, '0')}-${year}`;
+    };
+
+    const booking = {
+      ...bookingData[0],
+      startDate: formatDate(bookingData[0].startDate),
+      endDate: formatDate(bookingData[0].endDate),
+    };
+
+    console.log("Booking : ", booking)
+
+    return res.status(200).json(new ApiResponse(200, booking, "Booking fetched successfully"));
   } catch (error) {
     console.error("Error fetching booking:", error);
     return res.status(500).json(new ApiError(500, {}, "Error fetching booking"));
@@ -567,8 +632,8 @@ export const getBookingById = async (req, res) => {
 export const updatePartnerStatus = async (req, res) => {
   const userId = req.user.linkedId;
   const { bookingId, partnerStatus, status } = req.body;
-  console.log("userId : ",userId)
-  console.log("req.body : ",req.body)
+  console.log("userId : ", userId)
+  console.log("req.body : ", req.body)
 
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(
@@ -577,7 +642,7 @@ export const updatePartnerStatus = async (req, res) => {
         partnerStatus,
         status,
       },
-      { new: true } 
+      { new: true }
     );
 
     const customer = await Customer.findById(updatedBooking.customerId)
@@ -587,7 +652,7 @@ export const updatePartnerStatus = async (req, res) => {
     // console.log("Partner : ",partner)
 
     if (!updatedBooking) {
-      return res.status(404).json(new ApiError(404,"Booking not found" ));
+      return res.status(404).json(new ApiError(404, "Booking not found"));
     }
 
     const title = `New Drive Assignment Alert`;
@@ -597,27 +662,27 @@ export const updatePartnerStatus = async (req, res) => {
       click_action: "OPEN_PARTNER_BOOKING_REQUEST",
     };
     // await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
-    res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
+    res.status(200).json(new ApiResponse(200, updatedBooking, "Booking updated successfully"));
   } catch (error) {
     console.error("Error updating booking:", error);
-    res.status(500).json(new ApiError(500,{}, "Failed to update booking"));
+    res.status(500).json(new ApiError(500, {}, "Failed to update booking"));
   }
 };
 
 export const updateDriverStatus = async (req, res) => {
   const userId = req.user.linkedId;
-  const { bookingId, driverStatus, status,driverId } = req.body;
-  console.log("userId : ",userId)
-  console.log("req.body : ",req.body)
+  const { bookingId, driverStatus, status, driverId } = req.body;
+  console.log("userId : ", userId)
+  console.log("req.body : ", req.body)
 
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      { 
+      {
         driverStatus,
         status,
       },
-      { new: true } 
+      { new: true }
     );
 
     const driver = await Driver.findById(driverId)
@@ -625,24 +690,20 @@ export const updateDriverStatus = async (req, res) => {
 
     const customer = await Customer.findById(updatedBooking.customerId)
     console.log("Customer ID: ", customer);
-
-
-    
-
-    console.log("updatedBooking : ",updatedBooking)
+    console.log("updatedBooking : ", updatedBooking)
     if (!updatedBooking) {
-      return res.status(404).json(new ApiError(404,"Booking not found" ));
+      return res.status(404).json(new ApiError(404, "Booking not found"));
     }
 
     const title = "New Ride Assignment 🚗";
-    const body =  `You have been assigned to a new ride. Pickup at ${updatedBooking.pickupLocation} and drop-off at ${updatedBooking.dropoffLocation}. Start time: ${updatedBooking.startDate}.`;
+    const body = `You have been assigned to a new ride. Pickup at ${updatedBooking.pickupLocation} and drop-off at ${updatedBooking.dropoffLocation}. Start time: ${updatedBooking.startDate}.`;
     const dataPayload = {
       bookingId: updatedBooking._id.toString(),
       click_action: "OPEN_DRIVER_BOOKING_REQUEST",
     };
 
     const title1 = `Your Booking Confirmed ,${driver.fullName} Assigned to Your Ride 🚖`;
-    const body1 =  `Your driver, ${driver.fullName}, is on the way. Pickup at ${updatedBooking.pickupLocation}. Contact: ${driver.phoneNumber}."`;
+    const body1 = `Your driver, ${driver.fullName}, is on the way. Pickup at ${updatedBooking.pickupLocation}. Contact: ${driver.phoneNumber}."`;
     const dataPayload1 = {
       bookingId: updatedBooking._id.toString(),
       click_action: "CUSTOMER_CONFIRMED_NOTIFICATION",
@@ -651,13 +712,11 @@ export const updateDriverStatus = async (req, res) => {
     await newNotification(driverId, userId, title, body, false, 'driver', bookingId);
     await newNotification(updatedBooking.customerId, userId, title1, body1, false, 'customer', bookingId);
 
-    await sendPushNotification(driver.deviceTokens, title, body,dataPayload);
-
-    await sendPushNotification(customer.deviceTokens,title1,body1,dataPayload1);
-
-    res.status(200).json(new ApiResponse(200,updatedBooking,"Booking updated successfully"));
+    await sendPushNotification(driver.deviceTokens, title, body, dataPayload);
+    await sendPushNotification(customer.deviceTokens, title1, body1, dataPayload1);
+    res.status(200).json(new ApiResponse(200, updatedBooking, "Booking updated successfully"));
   } catch (error) {
     console.error("Error updating booking:", error);
-    res.status(500).json(new ApiError(500,{}, "Failed to update booking"));
+    res.status(500).json(new ApiError(500, {}, "Failed to update booking"));
   }
 };
