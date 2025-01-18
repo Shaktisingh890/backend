@@ -137,7 +137,7 @@ const fetchPartnerBookingNotification = async (req, res) => {
 
 
 // Delete all notifications for a partner
- const partner_delete_all_notification = async (req, res) => {
+ const deleteAllnotification = async (req, res) => {
     try {
         const receiverId = req.user.linkedId;
 
@@ -182,4 +182,4 @@ const deleteNotification = async (req, res) => {
     }
 }
 
-export { createNotification ,fetchPartnerBookingNotification,partner_delete_all_notification, deleteNotification};
+export { createNotification ,fetchPartnerBookingNotification,deleteAllnotification, deleteNotification};
