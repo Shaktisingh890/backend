@@ -669,20 +669,17 @@ export const updatePartnerStatus = async (req, res) => {
   }
 };
 
-export const updateDriverStatus = async (req, res) => {
+export const assinDriver = async (req, res) => {
   const userId = req.user.linkedId;
-  const { bookingId, driverStatus, status, driverId } = req.body;
+  const { bookingId, driverId } = req.body;
   console.log("userId : ", userId)
   console.log("req.body : ", req.body)
 
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
-      {
-        driverStatus,
-        status,
-      },
-      { new: true }
+        { driverId: driverId },
+        { new: true } 
     );
 
     const driver = await Driver.findById(driverId)
@@ -713,6 +710,58 @@ export const updateDriverStatus = async (req, res) => {
     await newNotification(updatedBooking.customerId, userId, title1, body1, false, 'customer', bookingId);
 
     await sendPushNotification(driver.deviceTokens, title, body, dataPayload);
+    await sendPushNotification(customer.deviceTokens, title1, body1, dataPayload1);
+    res.status(200).json(new ApiResponse(200, updatedBooking, "Booking updated successfully"));
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    res.status(500).json(new ApiError(500, {}, "Failed to update booking"));
+  }
+};
+
+export const updateDriverStatus = async (req, res) => {
+  const userId = req.user.linkedId;
+  const { bookingId, driverStatus, status} = req.body;
+  console.log("userId : ", userId)
+  console.log("req.body : ", req.body)
+
+  try {
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingId,
+      {
+        driverStatus,
+        status,
+      },
+      { new: true }
+    );
+
+    const driver = await Driver.findById(userId)
+    console.log("Driver ID: ", driver);
+
+    const customer = await Customer.findById(updatedBooking.customerId)
+    console.log("Customer ID: ", customer);
+    console.log("updatedBooking : ", updatedBooking)
+    if (!updatedBooking) {
+      return res.status(404).json(new ApiError(404, "Booking not found"));
+    }
+
+    const title = "New Ride Assignment 🚗";
+    const body = `You have been assigned to a new ride. Pickup at ${updatedBooking.pickupLocation} and drop-off at ${updatedBooking.dropoffLocation}. Start time: ${updatedBooking.startDate}.`;
+    const dataPayload = {
+      bookingId: updatedBooking._id.toString(),
+      click_action: "OPEN_DRIVER_BOOKING_REQUEST",
+    };
+
+    const title1 = `Your Booking Confirmed ,${driver.fullName} Assigned to Your Ride 🚖`;
+    const body1 = `Your driver, ${driver.fullName}, is on the way. Pickup at ${updatedBooking.pickupLocation}. Contact: ${driver.phoneNumber}."`;
+    const dataPayload1 = {
+      bookingId: updatedBooking._id.toString(),
+      click_action: "CUSTOMER_CONFIRMED_NOTIFICATION",
+    };
+
+    // await newNotification(userId, userId, title, body, false, 'driver', bookingId);
+    await newNotification(updatedBooking.customerId, userId, title1, body1, false, 'customer', bookingId);
+
+    // await sendPushNotification(driver.deviceTokens, title, body, dataPayload);
     await sendPushNotification(customer.deviceTokens, title1, body1, dataPayload1);
     res.status(200).json(new ApiResponse(200, updatedBooking, "Booking updated successfully"));
   } catch (error) {
