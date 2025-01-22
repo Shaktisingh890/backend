@@ -16,6 +16,7 @@ const bookingSchema = new mongoose.Schema({
   penalties: { type: Number, default: 0 }, // Penalties for cancellations or amendments
   partnerStatus: { type: String, enum: ['pending', 'confirmed', 'rejected'], default: 'pending' },
   driverStatus: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+  driverRejectionReason: { type: String, default: null },
 }, { timestamps: true });
 
 // Automatically calculate durationInDays before saving the document
