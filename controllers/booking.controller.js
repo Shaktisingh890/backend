@@ -192,9 +192,11 @@ export const getBookingByPartner = async (req, res) => {
     });
     // console.log("carDetails : ", carDetails);
 
-    console.log("booking : ", bookings);
+    // console.log("booking : ", bookings);
+    res.status(200).json(new ApiResponse(200,bookings,"All Booking Fetched"))
   } catch (error) {
     console.log("Error : ", error)
+    res.status(500).json(new ApiError(500,"Error Fetched"))
   }
 };
 
