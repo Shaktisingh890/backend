@@ -23,12 +23,15 @@ dotenv.config({
 // Initialize express app
 const app = express();
 
+connectDB();
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
+app.use(bodyParser.json());
 
 // Request Logger Middleware (logs incoming requests)
 const requestLogger = (req, res, next) => {
@@ -64,17 +67,6 @@ app.use("/api/v1/partners", partnerRouter);
 app.use("/api/v1/cars", carRouter);
 app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/notifications",notificationRouter)
-
-
-// Connect to the database
-connectDB();
-
-// Start the server
-
-const MERCHANT_SECRET = '58a63b64-574d-417a-9214-066bee1e4caa';  // Use the same salt as in your app
-
-// Use body parser to parse incoming JSON requests
-app.use(bodyParser.json());
 
 // Webhook endpoint for PhonePe payment callback
 app.post('/phonepe-webhook', (req, res) => {
@@ -137,10 +129,6 @@ function prepareBase64Payload(body) {
   }
 }
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
 
 export { app };
 
