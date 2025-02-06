@@ -164,39 +164,40 @@ export const createBooking = async (req, res) => {
 };
 
 export const getBookingByPartner = async (req, res) => {
-  const partner = req.user.linkedId;
-  console.log("partner : ", partner);
+  const partnerId = req.user.linkedId;
 
   try {
-    if (!partner || !ObjectId.isValid(partner)) {
-      return res
-        .status(400)
-        .json({ success: false, message: " Invalid or missing partnerId" });
+    if (!partnerId || !ObjectId.isValid(partnerId)) {
+      return res.status(400).json(new ApiError(400, "Invalid or missing PartnerId"));
     }
+
     const bookings = await Booking.find({
-      partnerId: new ObjectId(partner),
-    });
-    if (bookings.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: " No Bookings Found! " });
+      partnerId: new ObjectId(partnerId),
+    })
+      .populate("carId")
+      .populate("driverId")
+      .limit(4);
+
+    if (!bookings.length) {
+      return res.status(404).json(new ApiError(404, "No Bookings Found!"));
     }
 
-    const bookingMap = bookings.map((obj) => {
-      return obj.carId;
-    });
-    // console.log("bookingMap : ", bookingMap);
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${monthNames[date.getMonth()]}-${date.getDate().toString().padStart(2, "0")}-${date.getFullYear()}`;
+    };
 
-    const carDetails = await Car.find({
-      _id: { $in: bookingMap.map((id) => new ObjectId(id)) },
-    });
-    // console.log("carDetails : ", carDetails);
+    const formattedBookings = bookings.map((booking) => ({
+      ...booking._doc,
+      startDate: formatDate(booking.startDate),
+      endDate: formatDate(booking.endDate),
+    }));
 
-    // console.log("booking : ", bookings);
-    res.status(200).json(new ApiResponse(200,bookings,"All Booking Fetched"))
+    res.status(200).json(new ApiResponse(200, formattedBookings, "All Bookings Fetched"));
   } catch (error) {
-    console.log("Error : ", error)
-    res.status(500).json(new ApiError(500,"Error Fetched"))
+    console.error("Error fetching Bookings: ", error);
+    res.status(500).json(new ApiError(500, "Internal Server Error"));
   }
 };
 

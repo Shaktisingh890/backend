@@ -6,21 +6,21 @@ const server = http.createServer(app);
 const io = new socketIo(server); // Initialize Socket.IO with the server
 
 // WebSocket connection
-// io.on('connection', (socket) => {
-//     console.log('A user connected');
+io.on('connection', (socket) => {
+    console.log('A user connected');
 
-//    // Listen for location updates from the driver app
-//    socket.on('locationUpdate', (locationData) => {
-//     const { latitude, longitude } = locationData;
+   // Listen for location updates from the driver app
+   socket.on('locationUpdate', (locationData) => {
+    const { latitude, longitude } = locationData;
 
-//     console.log(`Location received: Latitude = ${latitude}, Longitude = ${longitude}`);
+    console.log(`Location received: Latitude = ${latitude}, Longitude = ${longitude}`);
 
-// });
+});
 
-//     socket.on('disconnect', () => {
-//         console.log('User disconnected');
-//     });
-// });
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
